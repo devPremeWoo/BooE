@@ -1,60 +1,41 @@
-//package org.hyeong.booe.property;
-//
-//import lombok.extern.slf4j.Slf4j;
-//import org.hyeong.booe.property.api.ConstructionApiClient;
-//import org.hyeong.booe.property.dto.response.BrExposInfoResDto;
-//import org.springframework.boot.CommandLineRunner;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//import reactor.core.publisher.Flux;
-//import reactor.core.publisher.Mono;
-//import reactor.core.scheduler.Schedulers;
-//
-//import java.time.Duration;
-//import java.util.List;
-//import java.util.Optional;
-//
-//@Configuration
-//@Slf4j
-//public class ApiTestRunner {
-//
-////    @Bean
-////    public CommandLineRunner testApi(ConstructionApiClient apiClient) {
-////        return args -> {
-////            // 우선 "동", "호" 없이 숫자로만 찔러봅니다.
-////            apiClient.fetchExposDetail("28185", "10600", "0110", "0000", "2102동", "2703")
-////                    .subscribe(res -> {
-////                        log.info("📊 결과 개수(totalCount): {}", res.getResponse().getBody().getTotalCount());
-////
-////                        if (res.getResponse().getBody().getItems() != null && res.getResponse().getBody().getItems().getItem() != null) {
-////                            res.getResponse().getBody().getItems().getItem().forEach(item -> {
-////                                log.info("🏠 데이터 확인 -> 동: {}, 호: {}, 구분: {}, 면적: {}",
-////                                        item.getDongNm(), item.getHoNm(), item.getExposPubuseGbCdNm(), item.getArea());
-////                            });
-////                        }
-////                    }, error -> log.error("❌ 에러 발생: {}", error.getMessage()));
-////        };
-////    }
-//@Bean
-//public CommandLineRunner testApi(ConstructionApiClient apiClient) {
-//    return args -> {
-//        log.info("🚀 [검증] 데이터 확인된 퍼스트월드(4-1) 3동 5803호 단건 조회를 실시합니다.");
-//
-//        // 아까 로그에서 본 대로 '동'만 붙여서 보냅니다.
-//        apiClient.fetchExposDetail("28185", "10600", "0012", "0002", "101동", "301")
-//                .subscribe(res -> {
-//                    if (res != null && res.getResponse().getBody().getItems() != null) {
-//                        var items = res.getResponse().getBody().getItems().getItem();
-//                        items.forEach(item -> {
-//                            log.info("🎯 [조회 성공]");
-//                            log.info("🏠 주소: {} {} {}", item.getPlatPlc(), item.getDongNm(), item.getHoNm());
-//                            log.info("🏗️ 건물항목 - 구조: {}, 용도: {}", item.getStrctCdNm(), item.getMainPurpsCdNm());
-//                            log.info("📏 전용면적: {}㎡ ({})", item.getArea(), item.getExposPubuseGbCdNm());
-//                        });
-//                    } else {
-//                        log.warn("❌ 지번은 맞으나 동/호수 매칭에 실패했습니다. (totalCount: 0)");
-//                    }
-//                }, error -> log.error("❌ 통신 에러: {}", error.getMessage()));
-//    };
-//}
-//}
+package org.hyeong.booe.property;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hyeong.booe.property.api.LandApiClient;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component // 서버 실행 시 자동으로 동작하게 함
+@RequiredArgsConstructor
+@Slf4j
+public class ApiTestRunner implements CommandLineRunner {
+
+    private final LandApiClient landApiClient;
+
+    @Override
+    public void run(String... args) {
+        // 테스트하고 싶은 실제 PNU 번호를 입력하세요.
+        // 예: 서울특별시 종로구 청운동 89-25 (1111010100100890025)
+        String testPnu = "1111010100100890025";
+
+        log.info("🚀 [API 연결 테스트 시작] PNU: {}", testPnu);
+
+        landApiClient.fetchLandAttributes(testPnu)
+                .subscribe(
+                        response -> {
+                            log.info("✅ [API 연결 성공]");
+                            log.info("📍 주소: {}", response.getAddressNm());
+                            log.info("📍 지목: {}", response.getJimok());
+                            log.info("📍 면적: {}", response.getLandArea());
+                            log.info("📍 가공 지번: {}-{}", response.getBun(), response.getJi());
+                        },
+                        error -> {
+                            log.error("❌ [API 연결 실패]");
+                            log.error("에러 메시지: {}", error.getMessage());
+                            // 상세 원인 파악을 위해 에러 타입 출력
+                            log.error("에러 클래스: {}", error.getClass().getSimpleName());
+                        }
+                );
+    }
+}

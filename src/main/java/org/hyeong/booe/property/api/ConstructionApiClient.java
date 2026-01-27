@@ -2,8 +2,8 @@ package org.hyeong.booe.property.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hyeong.booe.exception.publicData.PublicDataAuthException;
-import org.hyeong.booe.exception.publicData.PublicDataCommunicationException;
+import org.hyeong.booe.exception.publicData.building.PublicDataAuthException;
+import org.hyeong.booe.exception.publicData.building.PublicDataCommunicationException;
 import org.hyeong.booe.property.dto.response.BrExposInfoResDto;
 import org.hyeong.booe.property.dto.response.BrTitleInfoResDto;
 import org.springframework.http.HttpStatusCode;
@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor

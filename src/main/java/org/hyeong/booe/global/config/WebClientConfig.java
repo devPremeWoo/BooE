@@ -6,6 +6,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.hyeong.booe.property.api.PublicDataProperties;
+import org.hyeong.booe.property.api.VworldProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -21,14 +22,24 @@ import java.time.Duration;
 public class WebClientConfig {
 
     private final PublicDataProperties properties;
+    private final VworldProperties vworldProperties;
 
     @Bean
     public WebClient publicDataWebClient() {
 
+        return createWebClient(properties.getBaseUrl(), properties.getTimeout());
+    }
+
+    @Bean
+    public WebClient vworldWebClient() {
+        return createWebClient(vworldProperties.getBaseUrl(), vworldProperties.getTimeout());
+    }
+
+    private WebClient createWebClient(String baseUrl, int timeout) {
         return WebClient.builder()
-                .uriBuilderFactory(createUriBuilderFactory())
-                .baseUrl(properties.getBaseUrl())
-                .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+                .uriBuilderFactory(createUriBuilderFactory(baseUrl))
+                .baseUrl(baseUrl)
+                .clientConnector(new ReactorClientHttpConnector(createHttpClient(timeout)))
                 .build();
     }
 
@@ -43,15 +54,15 @@ public class WebClientConfig {
         }
     }
 
-    private HttpClient createHttpClient() {
+    private HttpClient createHttpClient(int timeout) {
         return HttpClient.create()
                 .secure(sslContextSpec -> sslContextSpec.sslContext(createSslContext()))
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getTimeout())
-                .responseTimeout(Duration.ofMillis(properties.getTimeout()));
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout)
+                .responseTimeout(Duration.ofMillis(timeout));
     }
 
-    private DefaultUriBuilderFactory createUriBuilderFactory() {    // 이중 인코딩 방지 설정. 이미 인코딩 된 키 값 또 인코딩하는 것 방지하기 위함
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(properties.getBaseUrl());
+    private DefaultUriBuilderFactory createUriBuilderFactory(String baseUrl) {    // 이중 인코딩 방지 설정. 이미 인코딩 된 키 값 또 인코딩하는 것 방지하기 위함
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(baseUrl);
         factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
         return factory;
     }

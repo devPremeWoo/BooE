@@ -1,4 +1,4 @@
-package org.hyeong.booe.exception.publicData;
+package org.hyeong.booe.exception.publicData.building;
 
 import org.hyeong.booe.exception.BusinessException;
 import org.hyeong.booe.exception.ErrorCode;
