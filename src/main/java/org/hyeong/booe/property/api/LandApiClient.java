@@ -16,20 +16,20 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class LandApiClient {
 
-    private final VworldProperties vworldProperties;
-    private final WebClient vworldWebClient;
+    private final VworldLadfrlProperties vworldLadfrlProperties;
+    private final WebClient vworldLadfrlWebClient;
 
     public LandApiClient(
-            VworldProperties vworldProperties,
-            @Qualifier("vworldWebClient") WebClient vworldWebClient) {
-        this.vworldProperties = vworldProperties;
-        this.vworldWebClient = vworldWebClient;
+            VworldLadfrlProperties vworldLadfrlProperties,
+            @Qualifier("vworldLadfrlWebClient") WebClient vworldLadfrlWebClient) {
+        this.vworldLadfrlProperties = vworldLadfrlProperties;
+        this.vworldLadfrlWebClient = vworldLadfrlWebClient;
     }
 
     public Mono<LandResDto> fetchLandAttributes(String pnu) {
-        return vworldWebClient.get()
+        return vworldLadfrlWebClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .queryParam("key", vworldProperties.getServiceKey())
+                        .queryParam("key", vworldLadfrlProperties.getServiceKey())
                         .queryParam("pnu", pnu)
                         .queryParam("format", "json")
                         .build())

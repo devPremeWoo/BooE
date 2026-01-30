@@ -6,7 +6,8 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.hyeong.booe.property.api.PublicDataProperties;
-import org.hyeong.booe.property.api.VworldProperties;
+import org.hyeong.booe.property.api.VworldLadfrlProperties;
+import org.hyeong.booe.property.api.VworldLdaregProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -22,7 +23,8 @@ import java.time.Duration;
 public class WebClientConfig {
 
     private final PublicDataProperties properties;
-    private final VworldProperties vworldProperties;
+    private final VworldLadfrlProperties vworldLadfrlProperties;
+    private final VworldLdaregProperties vworldLdaregProperties;
 
     @Bean
     public WebClient publicDataWebClient() {
@@ -31,8 +33,13 @@ public class WebClientConfig {
     }
 
     @Bean
-    public WebClient vworldWebClient() {
-        return createWebClient(vworldProperties.getBaseUrl(), vworldProperties.getTimeout());
+    public WebClient vworldLadfrlWebClient() {
+        return createWebClient(vworldLadfrlProperties.getBaseUrl(), vworldLadfrlProperties.getTimeout());
+    }
+
+    @Bean
+    public WebClient vworldLdaregWebClient() {
+        return createWebClient(vworldLdaregProperties.getBaseUrl(), vworldLdaregProperties.getTimeout());
     }
 
     private WebClient createWebClient(String baseUrl, int timeout) {

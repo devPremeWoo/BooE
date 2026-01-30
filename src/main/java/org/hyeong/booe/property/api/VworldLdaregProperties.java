@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "api.vworld")
-public class VworldProperties {
+@ConfigurationProperties(prefix = "api.vworld.ldareg-list")
+public class VworldLdaregProperties {
     private String baseUrl;
     private String serviceKey;
     private int timeout;
