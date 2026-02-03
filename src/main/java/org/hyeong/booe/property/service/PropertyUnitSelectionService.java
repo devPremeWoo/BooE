@@ -19,7 +19,6 @@ public class PropertyUnitSelectionService {
     private final BldRgstApiClient apiClient;
 
     public Mono<DongHoSelectionResDto> getSelectableDongHo(BldRgstQueryDto queryDto) {
-
         return apiClient.fetchAllAreaItems(queryDto)
                 .map(this::groupByDongHo)
                 .map(this::toResponseDto);
@@ -27,7 +26,6 @@ public class PropertyUnitSelectionService {
 
 
     private Map<String, List<String>> groupByDongHo(List<BldRgstAreaItem> items) {
-
         Map<String, Set<String>> temp = new HashMap<>();
 
         for (BldRgstAreaItem item : items) {
@@ -74,9 +72,7 @@ public class PropertyUnitSelectionService {
         return hoNm.replaceAll("[^0-9]", "");
     }
 
-    private DongHoSelectionResDto toResponseDto(
-            Map<String, List<String>> grouped) {
-
+    private DongHoSelectionResDto toResponseDto(Map<String, List<String>> grouped) {
         List<DongHoSelectionResDto.DongUnit> dongs =
                 grouped.entrySet().stream()
                         .sorted(Map.Entry.comparingByKey())

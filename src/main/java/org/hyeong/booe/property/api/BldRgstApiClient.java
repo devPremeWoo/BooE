@@ -74,11 +74,7 @@ public class BldRgstApiClient {
                 });
     }
 
-    private record AreaPageState(
-            int pageNo,
-            int totalCount,
-            List<BldRgstAreaItem> items
-    ) {
+    private record AreaPageState(int pageNo, int totalCount, List<BldRgstAreaItem> items) {
         boolean isLast() {
             return pageNo * PAGE_SIZE >= totalCount;
         }
