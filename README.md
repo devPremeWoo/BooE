@@ -23,3 +23,5 @@
 ### 3. Advanced Exception Handling
 - **Global Exception Strategy**: 모든 예외를 중앙 집중식으로 관리합니다.
 - **Custom Error Codes**: 별도의 `Enum` 타입을 활용하여 에러 코드를 정의하고, 비즈니스 예외(예: `already_registered_member`)를 처리하기 위한 전용 예외 클래스를 운영합니다.
+
+테스트
