@@ -1,4 +1,4 @@
-package org.hyeong.booe.property.api;
+package org.hyeong.booe.property.api.properties;
 
 import lombok.Getter;
 import lombok.Setter;

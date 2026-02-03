@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.exception.publicData.building.PublicDataCommunicationException;
 import org.hyeong.booe.exception.publicData.land.LandDataNotFoundException;
 import org.hyeong.booe.exception.server.DataParsingException;
+import org.hyeong.booe.property.api.properties.VworldLadfrlProperties;
 import org.hyeong.booe.property.dto.response.LandInfoResDto;
 import org.hyeong.booe.property.dto.response.LandResDto;
 import org.springframework.beans.factory.annotation.Qualifier;

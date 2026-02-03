@@ -31,17 +31,18 @@ public class SecurityConfig {
                 // JWT를 사용한 인증에서는 보통 CSRF 토큰이 필요 없으므로 비활성화
                 .csrf(csrf -> csrf.disable())
                 // 요청 권한 설정
-                .authorizeHttpRequests(auth -> auth
-                        // 1. 휴대폰 인증 관련 모든 API 허용
-                        .requestMatchers("/api/phone-verification/**").permitAll()
-                        // 회원가입, 로그인 API는 누구나 접근 가능
-                        .requestMatchers("/api/member/signup", "/api/member/login").permitAll()
-                        // 아래 코드는 위 url 제외한 그 외 모든 요청은 인증 필요하다는 것
-                        .anyRequest().authenticated()
-                )
-
-                // 커스텀 JWT 필터를 UsernamePasswordAuthenticationFilter 전에 적용
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//                .authorizeHttpRequests(auth -> auth
+//                        // 1. 휴대폰 인증 관련 모든 API 허용
+//                        .requestMatchers("/api/phone-verification/**").permitAll()
+//                        // 회원가입, 로그인 API는 누구나 접근 가능
+//                        .requestMatchers("/api/member/signup", "/api/member/login").permitAll()
+//                        // 아래 코드는 위 url 제외한 그 외 모든 요청은 인증 필요하다는 것
+//                        .anyRequest().authenticated()
+//                )
+//
+//                // 커스텀 JWT 필터를 UsernamePasswordAuthenticationFilter 전에 적용
+//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                ;
 
         return http.build();
     }

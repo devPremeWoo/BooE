@@ -3,6 +3,7 @@ package org.hyeong.booe.property.api;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.hyeong.booe.exception.publicData.land.LandDataNotFoundException;
+import org.hyeong.booe.property.api.properties.VworldLadfrlProperties;
 import org.junit.jupiter.api.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.test.StepVerifier;

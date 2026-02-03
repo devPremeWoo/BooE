@@ -1,4 +1,4 @@
-package org.hyeong.booe.property.api;
+package org.hyeong.booe.property.api.properties;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "api.public-data")
-public class PublicDataProperties {
+@ConfigurationProperties(prefix = "api.vworld.ldareg-list")
+public class VworldLdaregProperties {
     private String baseUrl;
     private String serviceKey;
     private int timeout;

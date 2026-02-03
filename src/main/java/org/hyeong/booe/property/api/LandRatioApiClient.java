@@ -2,6 +2,7 @@ package org.hyeong.booe.property.api;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.exception.publicData.building.PublicDataCommunicationException;
+import org.hyeong.booe.property.api.properties.VworldLdaregProperties;
 import org.hyeong.booe.property.dto.response.LandRatioResDto;
 import org.hyeong.booe.property.dto.response.LdaregItem;
 import org.springframework.beans.factory.annotation.Qualifier;
