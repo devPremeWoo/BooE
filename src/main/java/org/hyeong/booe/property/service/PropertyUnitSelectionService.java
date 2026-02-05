@@ -1,6 +1,7 @@
 package org.hyeong.booe.property.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.property.api.BldRgstApiClient;
 import org.hyeong.booe.property.api.ConstructionApiClient;
 import org.hyeong.booe.property.dto.BldRgstQueryDto;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PropertyUnitSelectionService {
 
     private final BldRgstApiClient apiClient;
@@ -86,4 +88,21 @@ public class PropertyUnitSelectionService {
                 .dongs(dongs)
                 .build();
     }
+
+    public Mono<DongHoSelectionResDto> getSelectableDongHoWithTiming(
+            BldRgstQueryDto queryDto
+    ) {
+        return Mono.defer(() -> {
+            long start = System.nanoTime();
+
+            return getSelectableDongHo(queryDto)
+                    .doFinally(signal -> {
+                        long end = System.nanoTime();
+                        long elapsedMs = (end - start) / 1_000_000;
+                        log.info("[PERF] getSelectableDongHo total = {} ms (signal={})",
+                                elapsedMs, signal);
+                    });
+        });
+    }
+
 }

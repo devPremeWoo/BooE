@@ -20,6 +20,7 @@ public class ContractPropertyController {
 
     @PostMapping("/units")
     public Mono<DongHoSelectionResDto> getSelectableUnits(@RequestBody BldRgstQueryDto queryDto) {
-        return propertyUnitSelectionService.getSelectableDongHo(queryDto);
+        //return propertyUnitSelectionService.getSelectableDongHo(queryDto);
+        return propertyUnitSelectionService.getSelectableDongHoWithTiming(queryDto);
     }
 }

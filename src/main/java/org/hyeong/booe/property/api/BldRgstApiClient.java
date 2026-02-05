@@ -1,6 +1,7 @@
 package org.hyeong.booe.property.api;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.exception.publicData.building.PublicDataAuthException;
 import org.hyeong.booe.exception.publicData.building.PublicDataCommunicationException;
 import org.hyeong.booe.property.api.properties.PublicDataProperties;
@@ -11,33 +12,61 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class BldRgstApiClient {
 
     private static final int PAGE_SIZE = 100;
+    private static final int CONCURRENCY = 30;
     private static final String PRIVATE_AREA_PATH = "/1613000/BldRgstHubService/getBrExposPubuseAreaInfo"; // 전유공용면적 api 조회
 
     private final WebClient publicDataWebClient;
     private final PublicDataProperties properties;
 
 
+//    public Mono<List<BldRgstAreaItem>> fetchAllAreaItems(BldRgstQueryDto query) {
+//
+//        return fetchAreaPage(query, 1)
+//                .expand(state -> {
+//                    if (state.isLast()) {
+//                        return Mono.empty();
+//                    }
+//                    return fetchAreaPage(query, state.nextPage());
+//                })
+//                .flatMapIterable(AreaPageState::items)
+//                .collectList();
+//    }
+
     public Mono<List<BldRgstAreaItem>> fetchAllAreaItems(BldRgstQueryDto query) {
 
         return fetchAreaPage(query, 1)
-                .expand(state -> {
-                    if (state.isLast()) {
-                        return Mono.empty();
-                    }
-                    return fetchAreaPage(query, state.nextPage());
+                .flatMapMany(firstPage -> {
+                    int totalCount = firstPage.totalCount();
+                    log.info(""+totalCount);
+                    int totalPages =
+                            (int) Math.ceil((double) totalCount / PAGE_SIZE);
+
+                    return Flux.range(1, totalPages)
+                            .delayElements(Duration.ofMillis(50))
+                            .flatMap(pageNo -> fetchAreaPage(query, pageNo), CONCURRENCY)
+                            .timeout(Duration.ofSeconds(5))
+                            .retryWhen(
+                                    Retry.backoff(3, Duration.ofMillis(500))
+                            )
+                            .flatMapIterable(AreaPageState::items);
                 })
-                .flatMapIterable(AreaPageState::items)
                 .collectList();
     }
+
 
     public Mono<AreaPageState> fetchAreaPage(BldRgstQueryDto query, int pageNo) {
         return publicDataWebClient.get()
@@ -83,4 +112,16 @@ public class BldRgstApiClient {
             return pageNo + 1;
         }
     }
+
+    public Mono<List<BldRgstAreaItem>> fetchAllAreaItemsWithTiming(BldRgstQueryDto query, String label) {
+        return fetchAllAreaItems(query)
+                .elapsed()
+                .doOnNext(tuple ->
+                        log.info("[{}] 전유공용면적 전체 조회 소요 시간 = {} ms",
+                                label,
+                                tuple.getT1())
+                )
+                .map(Tuple2::getT2);
+    }
+
 }
