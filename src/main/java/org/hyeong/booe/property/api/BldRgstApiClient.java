@@ -25,26 +25,13 @@ import java.util.List;
 @Slf4j
 public class BldRgstApiClient {
 
-    private static final int PAGE_SIZE = 100;
+    private static final int NUM_OF_ROWS = 100;
     private static final int CONCURRENCY = 30;
     private static final String PRIVATE_AREA_PATH = "/1613000/BldRgstHubService/getBrExposPubuseAreaInfo"; // 전유공용면적 api 조회
 
     private final WebClient publicDataWebClient;
     private final PublicDataProperties properties;
 
-
-//    public Mono<List<BldRgstAreaItem>> fetchAllAreaItems(BldRgstQueryDto query) {
-//
-//        return fetchAreaPage(query, 1)
-//                .expand(state -> {
-//                    if (state.isLast()) {
-//                        return Mono.empty();
-//                    }
-//                    return fetchAreaPage(query, state.nextPage());
-//                })
-//                .flatMapIterable(AreaPageState::items)
-//                .collectList();
-//    }
 
     public Mono<List<BldRgstAreaItem>> fetchAllAreaItems(BldRgstQueryDto query) {
 
@@ -53,7 +40,7 @@ public class BldRgstApiClient {
                     int totalCount = firstPage.totalCount();
                     log.info(""+totalCount);
                     int totalPages =
-                            (int) Math.ceil((double) totalCount / PAGE_SIZE);
+                            (int) Math.ceil((double) totalCount / NUM_OF_ROWS);
 
                     return Flux.range(1, totalPages)
                             .delayElements(Duration.ofMillis(50))
@@ -77,7 +64,7 @@ public class BldRgstApiClient {
                 .queryParam("bjdongCd", query.getBjdongCd())
                 .queryParam("bun", query.getBun())
                 .queryParam("ji", query.getJi())
-                .queryParam("numOfRows", PAGE_SIZE)
+                .queryParam("numOfRows", NUM_OF_ROWS)
                 .queryParam("pageNo", pageNo)
                 .queryParam("_type", "json")
                 .build()
@@ -105,7 +92,7 @@ public class BldRgstApiClient {
 
     private record AreaPageState(int pageNo, int totalCount, List<BldRgstAreaItem> items) {
         boolean isLast() {
-            return pageNo * PAGE_SIZE >= totalCount;
+            return pageNo * NUM_OF_ROWS >= totalCount;
         }
 
         int nextPage() {

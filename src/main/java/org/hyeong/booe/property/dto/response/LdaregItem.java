@@ -12,11 +12,11 @@ public class LdaregItem {
     @JsonProperty("buldDongNm")
     private String dongNm;
 
+    @JsonProperty("buldFloorName")
+    private String floorNm;
+
     @JsonProperty("buldHoNm")
     private String hoNm;
-
-    @JsonProperty("buldNm")
-    private String buildingName;
 
     @JsonProperty("ldaQotaRate")
     private String ldaQotaRate; // 대지권 비율 (예: 45.2/3580.5)

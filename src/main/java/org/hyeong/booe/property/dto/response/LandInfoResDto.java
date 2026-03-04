@@ -14,13 +14,13 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LandInfoResDto {
     @JsonProperty("ladfrlVOList")
-    private LandVoContainer container;
+    private LandWrapper wrapper;
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class LandVoContainer {
+    public static class LandWrapper {
         @JsonProperty("ladfrlVOList")
         private List<LandVo> items;
         private String totalCount;
@@ -31,7 +31,6 @@ public class LandInfoResDto {
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class LandVo {
-        private String pnu;
 
         @JsonProperty("lndpclAr")
         private String landArea; // 면적 (JSON에서 "376.9" 문자열로 옴)
@@ -39,10 +38,12 @@ public class LandInfoResDto {
         @JsonProperty("lndcgrCodeNm")
         private String jimokNm;  // 지목명 (예: "대")
 
-        @JsonProperty("ldCodeNm")
-        private String addressNm; // 법정동명
-
-        @JsonProperty("mnnmSlno") // 지번(본번-부번) 필드 추가
-        private String mnnmSlno;
+//        private String pnu;
+//
+//        @JsonProperty("ldCodeNm")
+//        private String addressNm; // 법정동명
+//
+//        @JsonProperty("mnnmSlno") // 지번(본번-부번) 필드 추가
+//        private String mnnmSlno;
     }
 }

@@ -1,6 +1,7 @@
 package org.hyeong.booe.property.api;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
 import org.hyeong.booe.exception.publicData.building.PublicDataCommunicationException;
 import org.hyeong.booe.exception.publicData.land.LandDataNotFoundException;
 import org.hyeong.booe.exception.server.DataParsingException;
@@ -27,11 +28,11 @@ public class LandApiClient {
         this.vworldLadfrlWebClient = vworldLadfrlWebClient;
     }
 
-    public Mono<LandResDto> fetchLandAttributes(String pnu) {
+    public Mono<LandResDto> fetchLandAttributes(PropertyInfoReqDto reqDto) {
         return vworldLadfrlWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .queryParam("key", vworldLadfrlProperties.getServiceKey())
-                        .queryParam("pnu", pnu)
+                        .queryParam("pnu", reqDto.getPnu())
                         .queryParam("format", "json")
                         .build())
                 .retrieve()
@@ -43,25 +44,16 @@ public class LandApiClient {
     }
 
     private LandResDto parseLandInfo(LandInfoResDto response) {
-        if (response.getContainer() == null || response.getContainer().getItems() == null || response.getContainer().getItems().isEmpty()) {
+        if (response.getWrapper() == null || response.getWrapper().getItems() == null || response.getWrapper().getItems().isEmpty()) {
             throw new LandDataNotFoundException();
         }
 
         try {
-            LandInfoResDto.LandVo item = response.getContainer().getItems().get(0);
-
-            String mnnmSlno = item.getMnnmSlno();
-            String[] parts = mnnmSlno.split("-");
-            String bun = String.format("%04d", Integer.parseInt(parts[0]));
-            String ji = (parts.length > 1) ? String.format("%04d", Integer.parseInt(parts[1])) : "0000";
+            LandInfoResDto.LandVo item = response.getWrapper().getItems().get(0);
 
             return LandResDto.builder()
-                    .pnu(item.getPnu())
-                    .addressNm(item.getAddressNm())
                     .jimok(item.getJimokNm())
-                    .landArea(Double.valueOf(item.getLandArea())) // String -> Double 변환
-                    .bun(bun)
-                    .ji(ji)
+                    .landArea(item.getLandArea()) // String -> Double 변환
                     .build();
 
         } catch (Exception e) {

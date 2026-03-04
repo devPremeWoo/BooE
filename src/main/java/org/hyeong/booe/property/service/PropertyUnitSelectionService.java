@@ -53,7 +53,7 @@ public class PropertyUnitSelectionService {
      */
     private String normalizeDong(String dongNm) {
         if (dongNm == null) return null;
-
+        log.info(dongNm);
         String trimmed = dongNm.trim();
         String number = trimmed.replaceAll("[^0-9]", "");
         if (!number.isEmpty()) {

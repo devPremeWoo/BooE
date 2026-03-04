@@ -1,6 +1,7 @@
 package org.hyeong.booe.contract.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
 import org.hyeong.booe.property.dto.BldRgstQueryDto;
 import org.hyeong.booe.property.dto.response.DongHoSelectionResDto;
 import org.hyeong.booe.property.service.PropertyUnitSelectionService;
@@ -23,4 +24,10 @@ public class ContractPropertyController {
         //return propertyUnitSelectionService.getSelectableDongHo(queryDto);
         return propertyUnitSelectionService.getSelectableDongHoWithTiming(queryDto);
     }
+
+
+//    @PostMapping("/property-info")
+//    public Mono<String> getPropertyInfo(@RequestBody PropertyInfoReqDto reqDto) {
+//
+//    }
 }
