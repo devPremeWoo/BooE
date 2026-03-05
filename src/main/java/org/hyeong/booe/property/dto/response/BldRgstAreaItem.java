@@ -14,12 +14,21 @@ public class BldRgstAreaItem {
     @JsonProperty("dongNm")
     private String dongNm;
 
+    @JsonProperty("flrNo")
+    private String flrNo;
+
     @JsonProperty("hoNm")
     private String hoNm;
+
+    @JsonProperty("strctCdNm")
+    private String strctCdNm;
+
+    @JsonProperty("mainPurpsCdNm")
+    private String mainPurpsCdNm;
 
     @JsonProperty("area")
     private Double area;
 
-    @JsonProperty("areaGbCdNm")
+    @JsonProperty("exposPubuseGbCdNm")
     private String areaTypeName; // 전유 / 공용
 }

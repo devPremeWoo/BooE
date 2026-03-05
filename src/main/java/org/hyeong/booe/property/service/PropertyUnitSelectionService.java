@@ -3,15 +3,14 @@ package org.hyeong.booe.property.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.property.api.BldRgstApiClient;
-import org.hyeong.booe.property.api.ConstructionApiClient;
 import org.hyeong.booe.property.dto.BldRgstQueryDto;
+import org.hyeong.booe.property.dto.UnitDetail;
 import org.hyeong.booe.property.dto.response.BldRgstAreaItem;
-import org.hyeong.booe.property.dto.response.DongHoSelectionResDto;
+import org.hyeong.booe.property.dto.response.BuildingUnitResDto;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,32 +19,54 @@ public class PropertyUnitSelectionService {
 
     private final BldRgstApiClient apiClient;
 
-    public Mono<DongHoSelectionResDto> getSelectableDongHo(BldRgstQueryDto queryDto) {
+    public Mono<BuildingUnitResDto> getSelectableDongHo(BldRgstQueryDto queryDto) {
         return apiClient.fetchAllAreaItems(queryDto)
-                .map(this::groupByDongHo)
+                .doOnNext(items -> {
+                    // 리스트가 비어있지 않다면 첫 번째 아이템의 원본 값을 출력
+                    if (items != null && !items.isEmpty()) {
+                        BldRgstAreaItem first = items.get(0);
+                        log.info("[DEBUG] 첫 번째 데이터 확인 - 동: {}, 층: {}, 호: {}, 면적: {}, 구분: {}",
+                                first.getDongNm(), first.getFlrNo(), first.getHoNm(), first.getArea(), first.getAreaTypeName());
+                        log.info("[DEBUG] 전체 아이템 개수: {}", items.size());
+                    } else {
+                        log.warn("[DEBUG] API로부터 받은 데이터가 비어있습니다.");
+                    }
+                })
+                .map(this::groupItem)
                 .map(this::toResponseDto);
     }
 
+    private Map<String, Map<String, Map<String, UnitDetail>>> groupItem(List<BldRgstAreaItem> items) {
 
-    private Map<String, List<String>> groupByDongHo(List<BldRgstAreaItem> items) {
-        Map<String, Set<String>> temp = new HashMap<>();
+        Map<String, Map<String, Map<String, UnitDetail>>> result = new HashMap<>();
 
         for (BldRgstAreaItem item : items) {
+            if (!isExclusive(item)) continue;
+
             String dong = normalizeDong(item.getDongNm());
+            String floor = item.getFlrNo();
             String ho = normalizeHo(item.getHoNm());
 
-            if (dong == null || ho == null) {
-                continue;
-            }
-            if (!temp.containsKey(dong)) {
-                temp.put(dong, new HashSet<>());
-            }
-            temp.get(dong).add(ho);
+            if (dong == null || floor == null || ho == null) continue;
+
+            UnitDetail detail = new UnitDetail(
+                    item.getStrctCdNm(),
+                    item.getMainPurpsCdNm(),
+                    item.getArea()
+            );
+
+            result
+                    .computeIfAbsent(dong, d -> new HashMap<>())
+                    .computeIfAbsent(floor, f -> new HashMap<>())
+                    .putIfAbsent(ho, detail);
         }
 
-        return temp.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                e -> e.getValue().stream().sorted().toList()));
+        return result;
+    }
+
+    private boolean isExclusive(BldRgstAreaItem item) {
+
+        return item.getAreaTypeName() != null && item.getAreaTypeName().trim().equals("전유");
     }
 
     /**
@@ -53,7 +74,6 @@ public class PropertyUnitSelectionService {
      */
     private String normalizeDong(String dongNm) {
         if (dongNm == null) return null;
-        log.info(dongNm);
         String trimmed = dongNm.trim();
         String number = trimmed.replaceAll("[^0-9]", "");
         if (!number.isEmpty()) {
@@ -74,22 +94,79 @@ public class PropertyUnitSelectionService {
         return hoNm.replaceAll("[^0-9]", "");
     }
 
-    private DongHoSelectionResDto toResponseDto(Map<String, List<String>> grouped) {
-        List<DongHoSelectionResDto.DongUnit> dongs =
-                grouped.entrySet().stream()
-                        .sorted(Map.Entry.comparingByKey())
-                        .map(e -> DongHoSelectionResDto.DongUnit.builder()
-                                .dongName(e.getKey())
-                                .hoList(e.getValue())
-                                .build())
-                        .toList();
+    /**
+     * [변환 로직] 전체 Map -> DongHoSelectionResDto
+     */
+    private BuildingUnitResDto toResponseDto(Map<String, Map<String, Map<String, UnitDetail>>> grouped) {
+        List<BuildingUnitResDto.BuildingUnits> buildingUnits = grouped.entrySet().stream()
+                .sorted((e1, e2) -> compareNumericString(e1.getKey(), e2.getKey()))
+                .map(this::toDongUnit) // 동 단위 변환 메서드 호출
+                .toList();
 
-        return DongHoSelectionResDto.builder()
-                .dongs(dongs)
+        return BuildingUnitResDto.builder()
+                .buildingUnits(buildingUnits)
                 .build();
     }
 
-    public Mono<DongHoSelectionResDto> getSelectableDongHoWithTiming(
+    /**
+     * [변환 로직] 동 Map -> DongUnit
+     */
+    private BuildingUnitResDto.BuildingUnits toDongUnit(
+            Map.Entry<String, Map<String, Map<String, UnitDetail>>> dongEntry) {
+
+        List<BuildingUnitResDto.FloorUnit> floorUnits = dongEntry.getValue().entrySet().stream()
+                .sorted((e1, e2) -> compareNumericString(e1.getKey(), e2.getKey()))
+                .map(this::toFloorUnit) // 층 단위 변환 메서드 호출
+                .toList();
+
+        return BuildingUnitResDto.BuildingUnits.builder()
+                .dongName(dongEntry.getKey())
+                .floors(floorUnits)
+                .build();
+    }
+
+    /**
+     * [변환 로직] 층 Map -> FloorUnit
+     */
+    private BuildingUnitResDto.FloorUnit toFloorUnit(
+            Map.Entry<String, Map<String, UnitDetail>> floorEntry) {
+
+        List<BuildingUnitResDto.HoUnit> hoUnits = floorEntry.getValue().entrySet().stream()
+                .sorted((e1, e2) -> compareNumericString(e1.getKey(), e2.getKey()))
+                .map(this::toHoUnit) // 호 단위 변환 메서드 호출
+                .toList();
+
+        return BuildingUnitResDto.FloorUnit.builder()
+                .floorName(floorEntry.getKey())
+                .hos(hoUnits)
+                .build();
+    }
+
+    /**
+     * [변환 로직] 상세 정보 -> HoUnit
+     */
+    private BuildingUnitResDto.HoUnit toHoUnit(Map.Entry<String, UnitDetail> hoEntry) {
+        UnitDetail detail = hoEntry.getValue();
+        return BuildingUnitResDto.HoUnit.builder()
+                .hoName(hoEntry.getKey())
+                .area(detail.exclusiveArea())
+                .structure(detail.structure())
+                .purpose(detail.purpose())
+                .build();
+    }
+
+    private int compareNumericString(String a, String b) {
+        try {
+            // "101동"이나 "1층" 같은 경우 숫자만 발라내서 비교
+            int numA = Integer.parseInt(a.replaceAll("[^0-9]", ""));
+            int numB = Integer.parseInt(b.replaceAll("[^0-9]", ""));
+            return Integer.compare(numA, numB);
+        } catch (Exception e) {
+            return a.compareTo(b);
+        }
+    }
+
+    public Mono<BuildingUnitResDto> getSelectableDongHoWithTiming(
             BldRgstQueryDto queryDto
     ) {
         return Mono.defer(() -> {

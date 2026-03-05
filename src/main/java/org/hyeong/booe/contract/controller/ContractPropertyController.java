@@ -1,15 +1,11 @@
 package org.hyeong.booe.contract.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
 import org.hyeong.booe.property.dto.BldRgstQueryDto;
-import org.hyeong.booe.property.dto.response.DongHoSelectionResDto;
+import org.hyeong.booe.property.dto.response.BuildingUnitResDto;
 import org.hyeong.booe.property.service.PropertyUnitSelectionService;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,7 +16,7 @@ public class ContractPropertyController {
 
 
     @PostMapping("/units")
-    public Mono<DongHoSelectionResDto> getSelectableUnits(@RequestBody BldRgstQueryDto queryDto) {
+    public Mono<BuildingUnitResDto> getSelectableUnits(@RequestBody BldRgstQueryDto queryDto) {
         //return propertyUnitSelectionService.getSelectableDongHo(queryDto);
         return propertyUnitSelectionService.getSelectableDongHoWithTiming(queryDto);
     }
