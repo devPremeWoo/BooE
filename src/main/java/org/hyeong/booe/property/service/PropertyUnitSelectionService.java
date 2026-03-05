@@ -3,7 +3,7 @@ package org.hyeong.booe.property.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.property.api.BldRgstApiClient;
-import org.hyeong.booe.property.dto.BldRgstQueryDto;
+import org.hyeong.booe.property.dto.BuildingInfoReqDto;
 import org.hyeong.booe.property.dto.UnitDetail;
 import org.hyeong.booe.property.dto.response.BldRgstAreaItem;
 import org.hyeong.booe.property.dto.response.BuildingUnitResDto;
@@ -19,7 +19,7 @@ public class PropertyUnitSelectionService {
 
     private final BldRgstApiClient apiClient;
 
-    public Mono<BuildingUnitResDto> getSelectableDongHo(BldRgstQueryDto queryDto) {
+    public Mono<BuildingUnitResDto> getBuildingInfo(BuildingInfoReqDto queryDto) {
         return apiClient.fetchAllAreaItems(queryDto)
                 .doOnNext(items -> {
                     // 리스트가 비어있지 않다면 첫 번째 아이템의 원본 값을 출력
@@ -167,12 +167,12 @@ public class PropertyUnitSelectionService {
     }
 
     public Mono<BuildingUnitResDto> getSelectableDongHoWithTiming(
-            BldRgstQueryDto queryDto
+            BuildingInfoReqDto queryDto
     ) {
         return Mono.defer(() -> {
             long start = System.nanoTime();
 
-            return getSelectableDongHo(queryDto)
+            return getBuildingInfo(queryDto)
                     .doFinally(signal -> {
                         long end = System.nanoTime();
                         long elapsedMs = (end - start) / 1_000_000;

@@ -15,6 +15,7 @@ public enum SuccessCode {
     SIGNUP_SUCCESS(CREATED, "MEMBER_201", "회원가입이 완료되었습니다."),
     LOGOUT_SUCCESS(OK, "MEMBER_202", "로그아웃이 완료되었습니다."),
     TOKEN_REISSUE_SUCCESS(OK, "AUTH_200", "토큰이 재발급되었습니다."),
+    GET_PROPERTY_SUCCESS(OK, "PROPERTY_200", "부동산 통합 정보 조회에 성공했습니다."),
 
     // 204 NO_CONTENT
     DELETE_SUCCESS(NO_CONTENT, "COMMON_204", "삭제가 완료되었습니다.");

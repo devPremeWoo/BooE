@@ -12,7 +12,7 @@ public class LdaregItem {
     @JsonProperty("buldDongNm")
     private String dongNm;
 
-    @JsonProperty("buldFloorName")
+    @JsonProperty("buldFloorNm")
     private String floorNm;
 
     @JsonProperty("buldHoNm")

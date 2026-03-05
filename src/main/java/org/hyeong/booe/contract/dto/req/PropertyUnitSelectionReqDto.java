@@ -2,7 +2,7 @@ package org.hyeong.booe.contract.dto.req;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.hyeong.booe.property.dto.BldRgstQueryDto;
+import org.hyeong.booe.property.dto.BuildingInfoReqDto;
 
 @Getter
 @Builder
@@ -14,8 +14,8 @@ public class PropertyUnitSelectionReqDto {
     private final String ji;          // 지
 
 
-    public BldRgstQueryDto toQueryDto() {
-        return BldRgstQueryDto.builder()
+    public BuildingInfoReqDto toQueryDto() {
+        return BuildingInfoReqDto.builder()
                 .sigunguCd(sigunguCd)
                 .bjdongCd(bjdongCd)
                 .bun(bun)

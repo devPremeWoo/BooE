@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.exception.publicData.building.PublicDataAuthException;
 import org.hyeong.booe.exception.publicData.building.PublicDataCommunicationException;
 import org.hyeong.booe.property.api.properties.PublicDataProperties;
-import org.hyeong.booe.property.dto.BldRgstQueryDto;
+import org.hyeong.booe.property.dto.BuildingInfoReqDto;
 import org.hyeong.booe.property.dto.response.BldRgstApiResDto;
 import org.hyeong.booe.property.dto.response.BldRgstAreaItem;
 import org.springframework.http.HttpStatusCode;
@@ -33,7 +33,7 @@ public class BldRgstApiClient {
     private final PublicDataProperties properties;
 
 
-    public Mono<List<BldRgstAreaItem>> fetchAllAreaItems(BldRgstQueryDto query) {
+    public Mono<List<BldRgstAreaItem>> fetchAllAreaItems(BuildingInfoReqDto query) {
 
         return fetchAreaPage(query, 1)
                 .flatMapMany(firstPage -> {
@@ -55,7 +55,7 @@ public class BldRgstApiClient {
     }
 
 
-    public Mono<AreaPageState> fetchAreaPage(BldRgstQueryDto query, int pageNo) {
+    public Mono<AreaPageState> fetchAreaPage(BuildingInfoReqDto query, int pageNo) {
         return publicDataWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                 .path(PRIVATE_AREA_PATH)
@@ -100,7 +100,7 @@ public class BldRgstApiClient {
         }
     }
 
-    public Mono<List<BldRgstAreaItem>> fetchAllAreaItemsWithTiming(BldRgstQueryDto query, String label) {
+    public Mono<List<BldRgstAreaItem>> fetchAllAreaItemsWithTiming(BuildingInfoReqDto query, String label) {
         return fetchAllAreaItems(query)
                 .elapsed()
                 .doOnNext(tuple ->

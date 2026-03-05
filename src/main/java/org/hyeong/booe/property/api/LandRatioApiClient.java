@@ -49,14 +49,19 @@ public class LandRatioApiClient {
                         Mono.error(new PublicDataCommunicationException()))
                 .bodyToMono(LandRatioResDto.class)
                 .map(res -> {
+
+                    log.info("[Vworld Step 1] API 응답 수신 성공 (res: {})", res);
+
                     var wrapper = res.getWrapper();
                     if (wrapper == null) {
+                        log.warn("[Vworld Step 2] Wrapper(ldareg)가 null임");
                         return new pageState(pageNo, 0, List.of());
                     }
 
                     int total = (wrapper.getTotalCount() != null) ? Integer.parseInt(wrapper.getTotalCount()) : 0;
                     var items = (wrapper.getItems() != null) ? wrapper.getItems() : List.<LdaregItem>of();
 
+                    log.info("[Vworld Step 3] 데이터 추출 완료 - Total: {}, Items Size: {}", total, items.size());
                     return new pageState(pageNo, total, items);
                 })
                 .onErrorResume(e -> {
