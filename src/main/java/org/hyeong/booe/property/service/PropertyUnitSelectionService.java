@@ -3,7 +3,7 @@ package org.hyeong.booe.property.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.property.api.BldRgstApiClient;
-import org.hyeong.booe.property.dto.BuildingInfoReqDto;
+import org.hyeong.booe.property.dto.request.BuildingInfoReqDto;
 import org.hyeong.booe.property.dto.UnitDetail;
 import org.hyeong.booe.property.dto.response.BldRgstAreaItem;
 import org.hyeong.booe.property.dto.response.BuildingUnitResDto;

@@ -1,4 +1,4 @@
-package org.hyeong.booe.property.dto;
+package org.hyeong.booe.property.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;

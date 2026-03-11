@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.exception.publicData.building.PublicDataAuthException;
 import org.hyeong.booe.exception.publicData.building.PublicDataCommunicationException;
 import org.hyeong.booe.property.api.properties.PublicDataProperties;
-import org.hyeong.booe.property.dto.BuildingInfoReqDto;
+import org.hyeong.booe.property.dto.request.BuildingInfoReqDto;
 import org.hyeong.booe.property.dto.response.BldRgstApiResDto;
 import org.hyeong.booe.property.dto.response.BldRgstAreaItem;
 import org.springframework.http.HttpStatusCode;

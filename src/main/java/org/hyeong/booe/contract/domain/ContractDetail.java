@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -27,6 +29,14 @@ public class ContractDetail {
 
     @Column(columnDefinition = "text")
     private String specialTerms;
+
+    @Column(length = 50)
+    private String receiverName; // 영수자 성명 (임대인 혹은 대리인)
+
+    @Column(nullable = false)
+    private boolean isDownPaymentReceived = false; // 계약금 영수 여부 플래그
+
+    private LocalDateTime receivedAt;
 
 //    @Builder
 //    private ContractDetail(Contract contract, String propertyInfo,

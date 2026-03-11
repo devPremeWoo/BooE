@@ -2,7 +2,7 @@ package org.hyeong.booe.contract.dto.req;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.hyeong.booe.property.dto.BuildingInfoReqDto;
+import org.hyeong.booe.property.dto.request.BuildingInfoReqDto;
 
 @Getter
 @Builder
