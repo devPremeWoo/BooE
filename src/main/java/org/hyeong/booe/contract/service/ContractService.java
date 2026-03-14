@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.contract.domain.Contract;
+import org.hyeong.booe.contract.domain.ContractDetail;
 import org.hyeong.booe.contract.domain.ContractParty;
 import org.hyeong.booe.contract.domain.ContractPaymentSchedule;
 import org.hyeong.booe.contract.domain.type.PartyRole;
@@ -38,7 +39,12 @@ public class ContractService {
     // 월세 요청이라고 가정. 전세 요청은 따로 만들자
     public void save(Member member, ContractSaveReqDto dto) {
 
-        Contract contract = Contract.createContract(member, dto);
+        Contract contract = contractRepository.save(Contract.createContract(member, dto));
+
+        String propertyJson = convertPropertyInfoToJson(dto.getLandInfo(), dto.getBuildingInfo());
+        contractDetailRepository.save(ContractDetail.createContractDetail(contract, dto, propertyJson));
+        contractPartyRepository.saveAll(createParties(contract, dto));
+        paymentScheduleRepository.saveAll(createMonthlyRentSchedule(contract, dto));
     }
 
     private String convertPropertyInfoToJson(ContractSaveReqDto.LandInfo land, ContractSaveReqDto.BuildingInfo building) {

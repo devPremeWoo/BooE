@@ -49,10 +49,10 @@ public class ContractDetail {
         this.isDownPaymentReceived = false;
     }
 
-    public static ContractDetail createContractDetail(Contract contract, ContractSaveReqDto dto) {
+    public static ContractDetail createContractDetail(Contract contract, ContractSaveReqDto dto, String propertyInfo) {
         return ContractDetail.builder()
                 .contract(contract)
-                .propertyInfo("")
+                .propertyInfo(propertyInfo)
                 .leasePart(dto.getLeasePart())
                 .specialTerms(dto.getSpecialTerms())
                 .receiverName(dto.getPaymentInfo().getReceiverName())
