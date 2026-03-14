@@ -53,4 +53,6 @@ public class CustomUserDetails implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return UserDetails.super.isCredentialsNonExpired();
     }
+
+    public Long getMemberId() { return member.getId(); }
     }

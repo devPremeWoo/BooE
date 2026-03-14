@@ -3,8 +3,11 @@ package org.hyeong.booe.contract.controller;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
 import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
 import org.hyeong.booe.contract.dto.res.PropertyInfoResDto;
+import org.hyeong.booe.contract.service.ContractService;
+import org.hyeong.booe.global.details.CustomUserDetails;
 import org.hyeong.booe.property.dto.request.BuildingInfoReqDto;
 import org.hyeong.booe.property.dto.response.BuildingUnitResDto;
 import org.hyeong.booe.property.dto.response.LandRatioDto;
@@ -13,18 +16,22 @@ import org.hyeong.booe.property.service.LandInfoService;
 import org.hyeong.booe.property.service.PropertyCompositeService;
 import org.hyeong.booe.property.service.PropertyUnitSelectionService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/contracts/property")
+@RequestMapping("/contracts")
 public class ContractPropertyController {
 
     private final PropertyUnitSelectionService propertyUnitSelectionService;
     private final LandInfoService landInfoService;
     private final PropertyCompositeService propertyCompositeService;
+    private final ContractService contractService;
 
     @PostMapping("/units")
     public Mono<BuildingUnitResDto> getSelectableUnits(@RequestBody BuildingInfoReqDto queryDto) {
@@ -37,6 +44,16 @@ public class ContractPropertyController {
 
         return propertyCompositeService.getCompositePropertyInfo(reqDto)
                 .map(ResponseEntity::ok);
+    }
+
+    @PostMapping("/save/monthly-rent")
+    public ResponseEntity<?> saveMonthlyRent(@RequestBody ContractSaveReqDto reqDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long savedId = contractService.save(reqDto, userDetails.getMemberId());
+
+        // 201 Created 응답 (Location 헤더는 선택사항이지만 권장)
+        return ResponseEntity
+                .created(URI.create("/contracts/" + savedId))
+                .body(savedId);
     }
 
 

@@ -17,7 +17,9 @@ import org.hyeong.booe.contract.repository.ContractPartyRepository;
 import org.hyeong.booe.contract.repository.ContractPaymentScheduleRepository;
 import org.hyeong.booe.contract.repository.ContractRepository;
 import org.hyeong.booe.exception.JsonParsingException;
+import org.hyeong.booe.exception.MemberNotFoundException;
 import org.hyeong.booe.member.domain.Member;
+import org.hyeong.booe.member.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -35,16 +37,21 @@ public class ContractService {
     private final ContractDetailRepository contractDetailRepository;
     private final ContractPaymentScheduleRepository paymentScheduleRepository;
     private final ObjectMapper objectMapper;
+    private final MemberRepository memberRepository;
 
     // 월세 요청이라고 가정. 전세 요청은 따로 만들자
-    public void save(Member member, ContractSaveReqDto dto) {
+    public Long save(ContractSaveReqDto dto, Long memberId) {
 
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException());
         Contract contract = contractRepository.save(Contract.createContract(member, dto));
 
         String propertyJson = convertPropertyInfoToJson(dto.getLandInfo(), dto.getBuildingInfo());
         contractDetailRepository.save(ContractDetail.createContractDetail(contract, dto, propertyJson));
         contractPartyRepository.saveAll(createParties(contract, dto));
         paymentScheduleRepository.saveAll(createMonthlyRentSchedule(contract, dto));
+
+        return contract.getId();
     }
 
     private String convertPropertyInfoToJson(ContractSaveReqDto.LandInfo land, ContractSaveReqDto.BuildingInfo building) {
