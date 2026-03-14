@@ -40,19 +40,24 @@ public class ContractPaymentSchedule {
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-//    @Builder
-//    private ContractPaymentSchedule(Contract contract, PaymentType type, Long amount,
-//                                    LocalDate dueDate, Integer paymentOrder) {
-//        this.contract = contract;
-//        this.type = type;
-//        this.amount = amount;
-//        this.dueDate = dueDate;
-//        this.paymentOrder = (paymentOrder != null) ? paymentOrder : 1;
-//        this.status = PaymentStatus.WAITING;
-//    }
-//
-//    // 상태 업데이트 로직 (납부 완료 처리 등)
-//    public void markAsPaid() {
-//        this.status = PaymentStatus.PAID;
-//    }
+    @Builder
+    private ContractPaymentSchedule(Contract contract, PaymentType type, Long amount, LocalDate dueDate, Integer paymentOrder, PaymentStatus status) {
+        this.contract = contract;
+        this.type = type;
+        this.amount = amount;
+        this.dueDate = dueDate;
+        this.paymentOrder = paymentOrder;
+        this.status = status;
+    }
+
+    public static ContractPaymentSchedule createPaymentSchedule(Contract contract, PaymentType type, Long amount, LocalDate dueDate, int order) {
+        return ContractPaymentSchedule.builder()
+                .contract(contract)
+                .type(type)
+                .amount(amount)
+                .dueDate(dueDate)
+                .paymentOrder(order)
+                .status(PaymentStatus.PENDING)
+                .build();
+    }
 }

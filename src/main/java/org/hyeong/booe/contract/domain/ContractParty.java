@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hyeong.booe.contract.domain.type.PartyRole;
+import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
 
 @Entity
 @Getter
@@ -27,32 +28,37 @@ public class ContractParty {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "phone1")
-    private String phone1;
+    @Column(name = "phone")
+    private String phone;
 
-    @Column(name = "phone2")
-    private String phone2;
+    @Column(name = "mobile")
+    private String mobile;
 
     @Column(name = "address", length = 255)
     private String address;
 
-//    @Builder
-//    private ContractParty(Contract contract, PartyRole role, String name,
-//                          String phone1, String phone2, String address, String residentNoMasked) {
-//        this.contract = contract;
-//        this.role = role;
-//        this.name = name;
-//        this.phone1 = phone1;
-//        this.phone2 = phone2;
-//        this.address = address;
-//        this.residentNoMasked = residentNoMasked;
-//    }
-//
-//    public void updateInfo(String name, String phone1, String phone2, String address, String residentNoMasked) {
-//        this.name = name;
-//        this.phone1 = phone1;
-//        this.phone2 = phone2;
-//        this.address = address;
-//        this.residentNoMasked = residentNoMasked;
-//    }
+    @Builder
+    private ContractParty(Contract contract, PartyRole role, String name, String phone, String mobile, String address) {
+        this.contract = contract;
+        this.role = role;
+        this.name = name;
+        this.phone = phone;
+        this.mobile = mobile;
+        this.address = address;
+    }
+
+    public static ContractParty createContractParty(Contract contract, ContractSaveReqDto.PersonInfo personInfo, PartyRole role) {
+        return ContractParty.builder()
+                .contract(contract)
+                .role(role)
+                .name(personInfo.getName())
+                .phone(personInfo.getPhone())
+                .mobile(personInfo.getMobile())
+                .address(personInfo.getAddress())
+                .build();
+    }
+
+
+
+
 }

@@ -23,6 +23,10 @@ public enum ErrorCode {
     INVALID_PROFILE_DATA(BAD_REQUEST, "M008", "프로필 정보 생성 데이터가 올바르지 않습니다."),
     INVALID_CREDENTIAL_DATA(BAD_REQUEST, "M009", "인증 정보 생성 데이터가 올바르지 않습니다."),
 
+    // --- 400 BAD REQUEST ---
+    INVALID_CONTRACT_TERM(BAD_REQUEST, "C001", "계약 기간이나 시작일 설정이 올바르지 않습니다."),
+    INVALID_RENT_PAYMENT_DAY(BAD_REQUEST, "C002", "월세 지불일은 1~31일 사이여야 합니다."),
+
 
     // --- 401 UNAUTHORIZED (권한/비밀번호 오류) ---
     INVALID_PASSWORD(UNAUTHORIZED, "A001", "비밀번호가 올바르지 않습니다."),
@@ -56,6 +60,11 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S001", "서버 내부 오류가 발생했습니다."),
     SAVING_MEMBER_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "S002", "회원 저장 중 오류가 발생했습니다."),
     MEMBER_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S003", "회원 식별 코드 생성에 실패했습니다."),
+    JSON_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S012", "데이터를 JSON으로 변환하거나 파싱하는 중 오류가 발생했습니다."),
+    CONTRACT_SAVE_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "S020", "계약 정보 저장 중 알 수 없는 오류가 발생했습니다."),
+
+
+
     // 외부 API 통신 관련
     PUBLIC_DATA_COMMUNICATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S010", "공공데이터 서버와의 통신 중 오류가 발생했습니다."),
     DATA_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S011", "데이터 파싱 중 오류가 발생했습니다.");

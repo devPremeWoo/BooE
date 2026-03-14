@@ -23,7 +23,7 @@ public class ContractSaveReqDto {
     private PaymentInfo paymentInfo;
 
     private LeaseTerm leaseTerm;
-    private String specialTerms;
+    private String specialTerms;    // 특약
 
     private List<PersonInfo> lessors;
     private List<PersonInfo> lessees;
