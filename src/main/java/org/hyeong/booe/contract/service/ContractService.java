@@ -9,6 +9,7 @@ import org.hyeong.booe.contract.domain.ContractFormData;
 import org.hyeong.booe.contract.domain.ContractParty;
 import org.hyeong.booe.contract.domain.type.PartyRole;
 import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
 import org.hyeong.booe.contract.repository.ContractFormDataRepository;
 import org.hyeong.booe.contract.repository.ContractPartyRepository;
 import org.hyeong.booe.contract.repository.ContractRepository;
@@ -16,7 +17,14 @@ import org.hyeong.booe.exception.ContractAccessDeniedException;
 import org.hyeong.booe.exception.ContractNotFoundException;
 import org.hyeong.booe.exception.JsonParsingException;
 import org.hyeong.booe.exception.MemberNotFoundException;
+import org.hyeong.booe.exception.ProfileNotFoundException;
+import org.hyeong.booe.global.fcm.FcmService;
 import org.hyeong.booe.member.domain.Member;
+import org.hyeong.booe.member.domain.MemberDevice;
+import org.hyeong.booe.member.domain.MemberProfile;
+import org.hyeong.booe.member.domain.type.MemberStatus;
+import org.hyeong.booe.member.repository.MemberDeviceRepository;
+import org.hyeong.booe.member.repository.MemberProfileRepository;
 import org.hyeong.booe.member.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +42,9 @@ public class ContractService {
     private final ContractFormDataRepository contractFormDataRepository;
     private final ObjectMapper objectMapper;
     private final MemberRepository memberRepository;
+    private final MemberProfileRepository memberProfileRepository;
+    private final MemberDeviceRepository memberDeviceRepository;
+    private final FcmService fcmService;
 
     @Transactional
     public Long save(ContractSaveReqDto dto, Long memberId) {
@@ -104,6 +115,52 @@ public class ContractService {
             parties.add(ContractParty.createContractParty(contract, people.get(i), coRole));
         }
         return parties;
+    }
+
+    @Transactional
+    public void requestReview(ReviewRequestDto dto, Long lessorMemberId) {
+        save(dto.getContract(), lessorMemberId);
+
+        Member lesseeMember = findMemberByPhone(dto.getLesseePhoneNumber());
+        Contract contract = contractRepository.findById(dto.getContract().getContractId())
+                .orElseThrow(ContractNotFoundException::new);
+        contract.requestReview(lesseeMember);
+
+        List<String> lesseeFcmTokens = findFcmTokensByMember(lesseeMember);
+        fcmService.sendToAll(lesseeFcmTokens, "계약서 확인 요청",
+                "임대인이 계약서 확인을 요청했습니다.", String.valueOf(contract.getId()));
+    }
+
+    @Transactional
+    public void processLesseeConfirm(Long contractId, Long lesseeMemberId) {
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(ContractNotFoundException::new);
+        validateLesseeAccess(contract, lesseeMemberId);
+        contract.confirmByLessee();
+
+        List<String> lessorFcmTokens = findFcmTokensByMember(contract.getMember());
+        fcmService.sendToAll(lessorFcmTokens, "임차인 확인 완료",
+                "임차인이 계약서를 확인했습니다. 개인정보를 입력해주세요.", String.valueOf(contractId));
+    }
+
+    private void validateLesseeAccess(Contract contract, Long memberId) {
+        if (!contract.getLesseeMember().getId().equals(memberId)) {
+            throw new ContractAccessDeniedException();
+        }
+    }
+
+    private Member findMemberByPhone(String phoneNumber) {
+        MemberProfile profile = memberProfileRepository
+                .findByPhoneNumberAndMemberStatus(phoneNumber, MemberStatus.ACTIVE)
+                .orElseThrow(ProfileNotFoundException::new);
+        return profile.getMember();
+    }
+
+    private List<String> findFcmTokensByMember(Member member) {
+        return memberDeviceRepository.findAllByMember(member)
+                .stream()
+                .map(MemberDevice::getFcmToken)
+                .toList();
     }
 
     private String serializeToJson(ContractSaveReqDto dto) {

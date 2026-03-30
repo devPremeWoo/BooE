@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
 import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
+import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
 import org.hyeong.booe.contract.dto.res.PropertyInfoResDto;
 import org.hyeong.booe.contract.service.ContractService;
 import org.hyeong.booe.global.details.CustomUserDetails;
@@ -52,6 +53,18 @@ public class ContractPropertyController {
         return ResponseEntity
                 .created(URI.create("/contracts/" + savedId))
                 .body(savedId);
+    }
+
+    @PostMapping("/review-request")
+    public ResponseEntity<Void> requestReview(@RequestBody ReviewRequestDto reqDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        contractService.requestReview(reqDto, userDetails.getMemberId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{contractId}/confirm")
+    public ResponseEntity<Void> confirmByLessee(@PathVariable Long contractId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        contractService.processLesseeConfirm(contractId, userDetails.getMemberId());
+        return ResponseEntity.ok().build();
     }
 
 

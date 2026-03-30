@@ -25,6 +25,10 @@ public class Contract extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lessee_member_id")
+    private Member lesseeMember;
+
     @Column(name = "title", nullable = false)
     private String title;
 
@@ -75,15 +79,12 @@ public class Contract extends BaseEntity {
         this.termMonths = termMonths;
     }
 
-    public void requestReview() {
+    public void requestReview(Member lesseeMember) {
+        this.lesseeMember = lesseeMember;
         this.status = ContractStatus.REVIEW_REQUESTED;
     }
 
     public void confirmByLessee() {
-        this.status = ContractStatus.LESSEE_CONFIRMED;
-    }
-
-    public void startInfoCollecting() {
         this.status = ContractStatus.INFO_COLLECTING;
     }
 
