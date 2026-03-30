@@ -54,6 +54,12 @@ public class Contract extends BaseEntity {
     @Column(name = "term_months")
     private Integer termMonths;  // 계약 기간 (예: 12, 24)
 
+    @Column(name = "lessor_info_submitted", nullable = false)
+    private boolean lessorInfoSubmitted = false;
+
+    @Column(name = "lessee_info_submitted", nullable = false)
+    private boolean lesseeInfoSubmitted = false;
+
 
 
     @Builder
@@ -71,6 +77,28 @@ public class Contract extends BaseEntity {
 
     public void requestReview() {
         this.status = ContractStatus.REVIEW_REQUESTED;
+    }
+
+    public void confirmByLessee() {
+        this.status = ContractStatus.LESSEE_CONFIRMED;
+    }
+
+    public void startInfoCollecting() {
+        this.status = ContractStatus.INFO_COLLECTING;
+    }
+
+    public void submitLessorInfo() {
+        this.lessorInfoSubmitted = true;
+        if (this.lesseeInfoSubmitted) {
+            this.status = ContractStatus.FINAL_REVIEW;
+        }
+    }
+
+    public void submitLesseeInfo() {
+        this.lesseeInfoSubmitted = true;
+        if (this.lessorInfoSubmitted) {
+            this.status = ContractStatus.FINAL_REVIEW;
+        }
     }
 
     public void update(ContractSaveReqDto dto) {
