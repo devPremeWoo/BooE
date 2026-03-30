@@ -39,6 +39,10 @@ public enum ErrorCode {
 
     // --- 404 NOT FOUND (자원 없음) ---
     MEMBER_NOT_FOUND(NOT_FOUND, "M001", "존재하지 않는 회원입니다."),
+    CONTRACT_NOT_FOUND(NOT_FOUND, "C010", "계약 정보를 찾을 수 없습니다."),
+
+    // --- 403 FORBIDDEN ---
+    CONTRACT_ACCESS_DENIED(FORBIDDEN, "C011", "해당 계약에 접근할 권한이 없습니다."),
     PROFILE_NOT_FOUND(NOT_FOUND, "M011", "회원 프로필 정보를 찾을 수 없습니다."),
 
     // 부동산 데이터 관련

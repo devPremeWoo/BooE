@@ -13,6 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 public class ContractSaveReqDto {
 
+    private Long contractId;  // null: 신규 생성 / non-null: 기존 계약 수정
+
     private String title;
 
     private AddressInfo addressInfo;

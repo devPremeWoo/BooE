@@ -69,7 +69,16 @@ public class Contract extends BaseEntity {
         this.termMonths = termMonths;
     }
 
-    // 일단 월세
+    public void update(ContractSaveReqDto dto) {
+        this.title = dto.getTitle();
+        this.address = dto.getAddressInfo().getAddress();
+        this.totalDeposit = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getDeposit() : null;
+        this.monthlyRent = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getMonthlyRent() : null;
+        this.startDate = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getMoveInDate() : null;
+        this.endDate = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseEndDate() : null;
+        this.termMonths = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseMonths() : null;
+    }
+
     public static Contract createContract(Member member, ContractSaveReqDto dto) {
         return Contract.builder()
                 .member(member)
@@ -77,11 +86,11 @@ public class Contract extends BaseEntity {
                 .address(dto.getAddressInfo().getAddress())
                 .status(ContractStatus.DRAFT)
                 .type(ContractType.MONTHLY)
-                .totalDeposit(dto.getPaymentInfo().getDeposit())
-                .monthlyRent(dto.getPaymentInfo().getMonthlyRent())
-                .startDate(dto.getLeaseTerm().getMoveInDate())
-                .endDate(dto.getLeaseTerm().getLeaseEndDate())
-                .termMonths(dto.getLeaseTerm().getLeaseMonths())
+                .totalDeposit(dto.getPaymentInfo() != null ? dto.getPaymentInfo().getDeposit() : null)
+                .monthlyRent(dto.getPaymentInfo() != null ? dto.getPaymentInfo().getMonthlyRent() : null)
+                .startDate(dto.getLeaseTerm() != null ? dto.getLeaseTerm().getMoveInDate() : null)
+                .endDate(dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseEndDate() : null)
+                .termMonths(dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseMonths() : null)
                 .build();
     }
 }

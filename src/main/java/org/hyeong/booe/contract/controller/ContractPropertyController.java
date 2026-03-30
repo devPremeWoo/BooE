@@ -46,11 +46,9 @@ public class ContractPropertyController {
                 .map(ResponseEntity::ok);
     }
 
-    @PostMapping("/save/monthly-rent")
-    public ResponseEntity<?> saveMonthlyRent(@RequestBody ContractSaveReqDto reqDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    @PostMapping("/draft")
+    public ResponseEntity<Long> saveDraft(@RequestBody ContractSaveReqDto reqDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long savedId = contractService.save(reqDto, userDetails.getMemberId());
-
-        // 201 Created 응답 (Location 헤더는 선택사항이지만 권장)
         return ResponseEntity
                 .created(URI.create("/contracts/" + savedId))
                 .body(savedId);
