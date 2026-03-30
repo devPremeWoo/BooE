@@ -69,6 +69,10 @@ public class Contract extends BaseEntity {
         this.termMonths = termMonths;
     }
 
+    public void requestReview() {
+        this.status = ContractStatus.REVIEW_REQUESTED;
+    }
+
     public void update(ContractSaveReqDto dto) {
         this.title = dto.getTitle();
         this.address = dto.getAddressInfo().getAddress();
