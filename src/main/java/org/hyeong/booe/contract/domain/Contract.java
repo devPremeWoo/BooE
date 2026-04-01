@@ -20,7 +20,6 @@ public class Contract extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -32,7 +31,7 @@ public class Contract extends BaseEntity {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name ="address", nullable = false)
+    @Column(name = "address", nullable = false)
     private String address;
 
     @Enumerated(EnumType.STRING)
@@ -40,34 +39,33 @@ public class Contract extends BaseEntity {
     private ContractStatus status;
 
     @Enumerated(EnumType.STRING)
-    @Column(name= "type", nullable = false)
+    @Column(name = "type", nullable = false)
     private ContractType type;
 
     @Column(name = "total_deposit")
     private Long totalDeposit;
 
-    @Column(name = "monthly_Rent")
+    @Column(name = "monthly_rent")
     private Long monthlyRent;
 
     @Column(name = "start_date")
-    private LocalDate startDate; // 임대 시작일
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private LocalDate endDate;   // 임대 종료일
+    private LocalDate endDate;
 
     @Column(name = "term_months")
-    private Integer termMonths;  // 계약 기간 (예: 12, 24)
+    private Integer termMonths;
 
-    @Column(name = "lessor_info_submitted", nullable = false)
-    private boolean lessorInfoSubmitted = false;
+    @Column(name = "receiver_name", length = 50)
+    private String receiverName;   // 계약금 영수자 이름
 
-    @Column(name = "lessee_info_submitted", nullable = false)
-    private boolean lesseeInfoSubmitted = false;
-
-
+    @Column(name = "receiver_phone", length = 20)
+    private String receiverPhone;  // 계약금 영수자 연락처
 
     @Builder
-    private Contract(Member member, String title, String address, ContractStatus status, ContractType type, Long totalDeposit, Long monthlyRent, LocalDate startDate, LocalDate endDate, Integer termMonths) {
+    private Contract(Member member, String title, String address, ContractStatus status, ContractType type,
+                     Long totalDeposit, Long monthlyRent, LocalDate startDate, LocalDate endDate, Integer termMonths) {
         this.member = member;
         this.title = title;
         this.address = address;
@@ -75,41 +73,9 @@ public class Contract extends BaseEntity {
         this.type = type;
         this.totalDeposit = totalDeposit;
         this.monthlyRent = monthlyRent;
-        this.startDate = startDate;        this.endDate = endDate;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.termMonths = termMonths;
-    }
-
-    public void requestReview(Member lesseeMember) {
-        this.lesseeMember = lesseeMember;
-        this.status = ContractStatus.REVIEW_REQUESTED;
-    }
-
-    public void confirmByLessee() {
-        this.status = ContractStatus.INFO_COLLECTING;
-    }
-
-    public void submitLessorInfo() {
-        this.lessorInfoSubmitted = true;
-        if (this.lesseeInfoSubmitted) {
-            this.status = ContractStatus.FINAL_REVIEW;
-        }
-    }
-
-    public void submitLesseeInfo() {
-        this.lesseeInfoSubmitted = true;
-        if (this.lessorInfoSubmitted) {
-            this.status = ContractStatus.FINAL_REVIEW;
-        }
-    }
-
-    public void update(ContractSaveReqDto dto) {
-        this.title = dto.getTitle();
-        this.address = dto.getAddressInfo().getAddress();
-        this.totalDeposit = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getDeposit() : null;
-        this.monthlyRent = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getMonthlyRent() : null;
-        this.startDate = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getMoveInDate() : null;
-        this.endDate = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseEndDate() : null;
-        this.termMonths = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseMonths() : null;
     }
 
     public static Contract createContract(Member member, ContractSaveReqDto dto) {
@@ -125,5 +91,42 @@ public class Contract extends BaseEntity {
                 .endDate(dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseEndDate() : null)
                 .termMonths(dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseMonths() : null)
                 .build();
+    }
+
+    public void update(ContractSaveReqDto dto) {
+        this.title = dto.getTitle();
+        this.address = dto.getAddressInfo().getAddress();
+        this.totalDeposit = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getDeposit() : null;
+        this.monthlyRent = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getMonthlyRent() : null;
+        this.startDate = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getMoveInDate() : null;
+        this.endDate = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseEndDate() : null;
+        this.termMonths = dto.getLeaseTerm() != null ? dto.getLeaseTerm().getLeaseMonths() : null;
+    }
+
+    public void requestReview(Member lesseeMember) {
+        this.lesseeMember = lesseeMember;
+        this.status = ContractStatus.REVIEW_REQUESTED;
+    }
+
+    public void submitByLessee() {
+        this.status = ContractStatus.LESSEE_SUBMITTED;
+    }
+
+    public void confirmByLessor(String receiverName, String receiverPhone) {
+        this.receiverName = receiverName;
+        this.receiverPhone = receiverPhone;
+        this.status = ContractStatus.PAYMENT_PENDING;
+    }
+
+    public void completePayment() {
+        this.status = ContractStatus.PAYMENT_COMPLETED;
+    }
+
+    public void requestSign() {
+        this.status = ContractStatus.SIGN_REQUESTED;
+    }
+
+    public void completeSigning() {
+        this.status = ContractStatus.SIGNED;
     }
 }

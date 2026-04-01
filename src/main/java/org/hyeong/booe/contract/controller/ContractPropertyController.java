@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
+import org.hyeong.booe.contract.dto.res.ContractResDto;
 import org.hyeong.booe.contract.dto.res.PropertyInfoResDto;
 import org.hyeong.booe.contract.service.ContractService;
 import org.hyeong.booe.global.details.CustomUserDetails;
@@ -61,9 +63,24 @@ public class ContractPropertyController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{contractId}/confirm")
-    public ResponseEntity<Void> confirmByLessee(@PathVariable Long contractId, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        contractService.processLesseeConfirm(contractId, userDetails.getMemberId());
+    @GetMapping("/{contractId}")
+    public ResponseEntity<ContractResDto> getContract(@PathVariable Long contractId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(contractService.getContract(contractId, userDetails.getMemberId()));
+    }
+
+    @PostMapping("/{contractId}/lessee-submit")
+    public ResponseEntity<Void> submitLesseeInfo(@PathVariable Long contractId,
+                                                  @RequestBody ContractSaveReqDto reqDto,
+                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
+        contractService.submitLesseeInfo(contractId, reqDto, userDetails.getMemberId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{contractId}/down-payment-confirm")
+    public ResponseEntity<Void> confirmDownPayment(@PathVariable Long contractId,
+                                                    @RequestBody DownPaymentConfirmReqDto reqDto,
+                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
+        contractService.confirmDownPayment(contractId, reqDto, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }
 

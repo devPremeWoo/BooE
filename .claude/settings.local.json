@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew test:*)",
+      "Bash(./gradlew cleanTest test --tests \"org.hyeong.booe.contract.service.ContractFlowIntegrationTest\")",
+      "Bash(./gradlew cleanTest test --tests \"org.hyeong.booe.contract.service.*\")"
+    ]
+  }
+}

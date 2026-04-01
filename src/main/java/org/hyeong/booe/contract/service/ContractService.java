@@ -9,7 +9,9 @@ import org.hyeong.booe.contract.domain.ContractFormData;
 import org.hyeong.booe.contract.domain.ContractParty;
 import org.hyeong.booe.contract.domain.type.PartyRole;
 import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
+import org.hyeong.booe.contract.dto.res.ContractResDto;
 import org.hyeong.booe.contract.repository.ContractFormDataRepository;
 import org.hyeong.booe.contract.repository.ContractPartyRepository;
 import org.hyeong.booe.contract.repository.ContractRepository;
@@ -46,6 +48,7 @@ public class ContractService {
     private final MemberDeviceRepository memberDeviceRepository;
     private final FcmService fcmService;
 
+    // 임시저장 (임대인) - contractId 없으면 신규, 있으면 수정
     @Transactional
     public Long save(ContractSaveReqDto dto, Long memberId) {
         Member member = memberRepository.findById(memberId)
@@ -56,6 +59,61 @@ public class ContractService {
         replaceParties(contract, dto);
 
         return contract.getId();
+    }
+
+    // 임대인 → 임차인 확인 요청
+    @Transactional
+    public void requestReview(ReviewRequestDto dto, Long lessorMemberId) {
+        save(dto.getContract(), lessorMemberId);
+
+        // TODO: 번호로 회원 조회 실패 시 예외 처리 추가 필요
+        Member lesseeMember = findMemberByPhone(dto.getLesseePhoneNumber());
+        Contract contract = contractRepository.findById(dto.getContract().getContractId())
+                .orElseThrow(ContractNotFoundException::new);
+        contract.requestReview(lesseeMember);
+
+        List<String> lesseeFcmTokens = findFcmTokensByMember(lesseeMember);
+        fcmService.sendToAll(lesseeFcmTokens, "계약서 확인 요청",
+                "임대인이 계약서 확인을 요청했습니다.", String.valueOf(contract.getId()));
+    }
+
+    // 계약서 단건 조회 (임대인/임차인 공통)
+    public ContractResDto getContract(Long contractId, Long memberId) {
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(ContractNotFoundException::new);
+        validateContractAccess(contract, memberId);
+
+        String formJson = contractFormDataRepository.findById(contractId)
+                .map(ContractFormData::getFormJson)
+                .orElse(null);
+
+        return ContractResDto.of(contract, formJson);
+    }
+
+    // 임차인 정보 입력 완료
+    @Transactional
+    public void submitLesseeInfo(Long contractId, ContractSaveReqDto dto, Long lesseeMemberId) {
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(ContractNotFoundException::new);
+        validateLesseeAccess(contract, lesseeMemberId);
+
+        saveFormData(contract, dto);
+        replaceLesseeParties(contract, dto.getLessees());
+        contract.submitByLessee();
+
+        List<String> lessorFcmTokens = findFcmTokensByMember(contract.getMember());
+        fcmService.sendToAll(lessorFcmTokens, "임차인 정보 입력 완료",
+                "임차인이 정보를 입력했습니다. 확인 후 결제를 진행해주세요.", String.valueOf(contractId));
+    }
+
+    // 임대인 계약금 수령 확인 + 영수자 정보 입력 → 결제 요청 단계
+    @Transactional
+    public void confirmDownPayment(Long contractId, DownPaymentConfirmReqDto dto, Long lessorMemberId) {
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(ContractNotFoundException::new);
+        validateOwnership(contract, lessorMemberId);
+
+        contract.confirmByLessor(dto.getReceiverName(), dto.getReceiverPhone());
     }
 
     private Contract resolveContract(ContractSaveReqDto dto, Member member, Long memberId) {
@@ -76,6 +134,22 @@ public class ContractService {
         }
     }
 
+    private void validateLesseeAccess(Contract contract, Long memberId) {
+        if (!contract.getLesseeMember().getId().equals(memberId)) {
+            throw new ContractAccessDeniedException();
+        }
+    }
+
+    private void validateContractAccess(Contract contract, Long memberId) {
+        boolean isLessor = contract.getMember().getId().equals(memberId);
+        boolean isLessee = contract.getLesseeMember() != null
+                && contract.getLesseeMember().getId().equals(memberId);
+
+        if (!isLessor && !isLessee) {
+            throw new ContractAccessDeniedException();
+        }
+    }
+
     private void saveFormData(Contract contract, ContractSaveReqDto dto) {
         String formJson = serializeToJson(dto);
         contractFormDataRepository.findById(contract.getId())
@@ -90,19 +164,18 @@ public class ContractService {
         contractPartyRepository.saveAll(createParties(contract, dto));
     }
 
+    private void replaceLesseeParties(Contract contract, List<ContractSaveReqDto.PersonInfo> lessees) {
+        contractPartyRepository.deleteAllByContractAndRoleIn(
+                contract, List.of(PartyRole.LESSEE, PartyRole.CO_LESSEE));
+        contractPartyRepository.saveAll(
+                createPartiesWithRole(contract, lessees, PartyRole.LESSEE, PartyRole.CO_LESSEE));
+    }
+
     private List<ContractParty> createParties(Contract contract, ContractSaveReqDto dto) {
         List<ContractParty> parties = new ArrayList<>();
-        parties.addAll(createLessorParties(contract, dto.getLessors()));
-        parties.addAll(createLesseeParties(contract, dto.getLessees()));
+        parties.addAll(createPartiesWithRole(contract, dto.getLessors(), PartyRole.LESSOR, PartyRole.CO_LESSOR));
+        parties.addAll(createPartiesWithRole(contract, dto.getLessees(), PartyRole.LESSEE, PartyRole.CO_LESSEE));
         return parties;
-    }
-
-    private List<ContractParty> createLessorParties(Contract contract, List<ContractSaveReqDto.PersonInfo> people) {
-        return createPartiesWithRole(contract, people, PartyRole.LESSOR, PartyRole.CO_LESSOR);
-    }
-
-    private List<ContractParty> createLesseeParties(Contract contract, List<ContractSaveReqDto.PersonInfo> people) {
-        return createPartiesWithRole(contract, people, PartyRole.LESSEE, PartyRole.CO_LESSEE);
     }
 
     private List<ContractParty> createPartiesWithRole(Contract contract, List<ContractSaveReqDto.PersonInfo> people,
@@ -115,38 +188,6 @@ public class ContractService {
             parties.add(ContractParty.createContractParty(contract, people.get(i), coRole));
         }
         return parties;
-    }
-
-    @Transactional
-    public void requestReview(ReviewRequestDto dto, Long lessorMemberId) {
-        save(dto.getContract(), lessorMemberId);
-
-        Member lesseeMember = findMemberByPhone(dto.getLesseePhoneNumber());
-        Contract contract = contractRepository.findById(dto.getContract().getContractId())
-                .orElseThrow(ContractNotFoundException::new);
-        contract.requestReview(lesseeMember);
-
-        List<String> lesseeFcmTokens = findFcmTokensByMember(lesseeMember);
-        fcmService.sendToAll(lesseeFcmTokens, "계약서 확인 요청",
-                "임대인이 계약서 확인을 요청했습니다.", String.valueOf(contract.getId()));
-    }
-
-    @Transactional
-    public void processLesseeConfirm(Long contractId, Long lesseeMemberId) {
-        Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(ContractNotFoundException::new);
-        validateLesseeAccess(contract, lesseeMemberId);
-        contract.confirmByLessee();
-
-        List<String> lessorFcmTokens = findFcmTokensByMember(contract.getMember());
-        fcmService.sendToAll(lessorFcmTokens, "임차인 확인 완료",
-                "임차인이 계약서를 확인했습니다. 개인정보를 입력해주세요.", String.valueOf(contractId));
-    }
-
-    private void validateLesseeAccess(Contract contract, Long memberId) {
-        if (!contract.getLesseeMember().getId().equals(memberId)) {
-            throw new ContractAccessDeniedException();
-        }
     }
 
     private Member findMemberByPhone(String phoneNumber) {

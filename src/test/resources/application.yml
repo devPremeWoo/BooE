@@ -1,0 +1,35 @@
+spring:
+  config:
+    import: optional:classpath:.env
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/booe
+    username: root
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQLDialect
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+jwt:
+  secret: QfPVGvva7yVqWUQm36spFFgNdDa0z9uGgaHdkuP/A0ctwO6TN9ma6PAqon5pRJckOA7mXM3m5nbbdejXLAjNOg==
+  access_token_time: 3600000
+
+api:
+  public-data:
+    base-url: https://apis.data.go.kr
+    service-key: "test-key"
+    timeout: 5000
+  vworld:
+    ladfrl-list:
+      base-url: https://api.vworld.kr/ned/data/ladfrlList
+      service-key: "test-key"
+      timeout: 5000
+    ldareg-list:
+      base-url: https://api.vworld.kr/ned/data/ldaregList
+      service-key: "test-key"
+      timeout: 5000
