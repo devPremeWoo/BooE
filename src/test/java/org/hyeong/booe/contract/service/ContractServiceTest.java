@@ -7,7 +7,7 @@ import org.hyeong.booe.contract.ContractFixture;
 import org.hyeong.booe.contract.domain.Contract;
 import org.hyeong.booe.contract.domain.ContractFormData;
 import org.hyeong.booe.contract.domain.type.ContractStatus;
-import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
 import org.hyeong.booe.contract.dto.res.ContractResDto;
@@ -86,7 +86,7 @@ class ContractServiceTest {
         @Test
         @DisplayName("신규 계약 생성 성공")
         void 신규생성_성공() {
-            ContractSaveReqDto dto = ContractFixture.saveDto(null);
+            ContractBaseReqDto dto = ContractFixture.saveDto(null);
             when(memberRepository.findById(1L)).thenReturn(Optional.of(lessor));
             when(contractRepository.save(any())).thenReturn(contract);
             when(contractFormDataRepository.findById(anyLong())).thenReturn(Optional.empty());
@@ -102,7 +102,7 @@ class ContractServiceTest {
         @Test
         @DisplayName("기존 계약 수정 성공")
         void 기존계약수정_성공() {
-            ContractSaveReqDto dto = ContractFixture.saveDto(10L);
+            ContractBaseReqDto dto = ContractFixture.saveDto(10L);
             when(memberRepository.findById(1L)).thenReturn(Optional.of(lessor));
             when(contractRepository.findById(10L)).thenReturn(Optional.of(contract));
             when(contractFormDataRepository.findById(10L))
@@ -127,7 +127,7 @@ class ContractServiceTest {
         @Test
         @DisplayName("다른 사람의 계약 수정 시도 시 예외 발생")
         void 권한없는수정_예외() {
-            ContractSaveReqDto dto = ContractFixture.saveDto(10L);
+            ContractBaseReqDto dto = ContractFixture.saveDto(10L);
             when(memberRepository.findById(2L)).thenReturn(Optional.of(lessee));
             when(contractRepository.findById(10L)).thenReturn(Optional.of(contract)); // 소유자는 lessor(1L)
 
@@ -143,7 +143,7 @@ class ContractServiceTest {
         @Test
         @DisplayName("임차인 조회 후 FCM 발송 성공")
         void 확인요청_성공() {
-            ContractSaveReqDto saveDto = ContractFixture.saveDto(10L);
+            ContractBaseReqDto saveDto = ContractFixture.saveDto(10L);
             ReviewRequestDto dto = new ReviewRequestDto();
             ReflectionTestUtils.setField(dto, "contract", saveDto);
             ReflectionTestUtils.setField(dto, "lesseePhoneNumber", "01033334444");
@@ -170,7 +170,7 @@ class ContractServiceTest {
         @Test
         @DisplayName("존재하지 않는 임차인 번호로 요청 시 예외 발생")
         void 존재하지않는임차인번호_예외() {
-            ContractSaveReqDto saveDto = ContractFixture.saveDto(10L);
+            ContractBaseReqDto saveDto = ContractFixture.saveDto(10L);
             ReviewRequestDto dto = new ReviewRequestDto();
             ReflectionTestUtils.setField(dto, "contract", saveDto);
             ReflectionTestUtils.setField(dto, "lesseePhoneNumber", "01099999999");
@@ -199,7 +199,7 @@ class ContractServiceTest {
         @Test
         @DisplayName("임차인 정보 제출 성공 - 상태 변경 및 임대인 FCM 발송")
         void 임차인정보제출_성공() {
-            ContractSaveReqDto dto = ContractFixture.saveDto(10L);
+            ContractBaseReqDto dto = ContractFixture.saveDto(10L);
             MemberDevice lessorDevice = MemberDevice.create(lessor, "device-1", "fcm-token-lessor", null);
 
             when(contractRepository.findById(10L)).thenReturn(Optional.of(contract));

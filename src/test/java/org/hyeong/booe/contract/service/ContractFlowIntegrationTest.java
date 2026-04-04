@@ -6,7 +6,7 @@ import org.hyeong.booe.contract.domain.ContractFormData;
 import org.hyeong.booe.contract.domain.ContractParty;
 import org.hyeong.booe.contract.domain.type.ContractStatus;
 import org.hyeong.booe.contract.domain.type.PartyRole;
-import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
 import org.hyeong.booe.contract.dto.res.ContractResDto;
@@ -89,7 +89,7 @@ class ContractFlowIntegrationTest {
     private Long saveAndRequestReview() {
         Long contractId = saveNewDraft();
 
-        ContractSaveReqDto saveDto = ContractFixture.saveDto(contractId);
+        ContractBaseReqDto saveDto = ContractFixture.saveDto(contractId);
         ReviewRequestDto reviewDto = new ReviewRequestDto();
         ReflectionTestUtils.setField(reviewDto, "contract", saveDto);
         ReflectionTestUtils.setField(reviewDto, "lesseePhoneNumber", "01033334444");
@@ -133,7 +133,7 @@ class ContractFlowIntegrationTest {
             Long contractId = saveNewDraft();
             long contractCountBefore = contractRepository.count();
 
-            ContractSaveReqDto updateDto = ContractFixture.saveDto(contractId);
+            ContractBaseReqDto updateDto = ContractFixture.saveDto(contractId);
             contractService.save(updateDto, lessor.getId());
 
             assertThat(contractRepository.count()).isEqualTo(contractCountBefore);
@@ -292,7 +292,7 @@ class ContractFlowIntegrationTest {
                     .isEqualTo(ContractStatus.DRAFT);
 
             // 2. 확인 요청 (REVIEW_REQUESTED)
-            ContractSaveReqDto saveDto = ContractFixture.saveDto(contractId);
+            ContractBaseReqDto saveDto = ContractFixture.saveDto(contractId);
             ReviewRequestDto reviewDto = new ReviewRequestDto();
             ReflectionTestUtils.setField(reviewDto, "contract", saveDto);
             ReflectionTestUtils.setField(reviewDto, "lesseePhoneNumber", "01033334444");

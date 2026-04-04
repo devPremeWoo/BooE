@@ -2,7 +2,6 @@ package org.hyeong.booe.contract.service;
 
 import org.hyeong.booe.contract.domain.type.RentPaymentType;
 import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
-import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -231,6 +230,18 @@ class ContractPdfServiceTest {
 
         assertThat(html).contains("정 10,000,000원");
         assertThat(html).contains("2026년 06월 01일");
+    }
+
+    @Test
+    void generatePdf_파일출력() throws IOException {
+        ContractBaseReqDto dto = buildSampleDto();
+
+        byte[] pdf = service.generatePdf(dto);
+
+        Path output = Path.of("build/contract_test.pdf");
+        Files.write(output, pdf);
+        System.out.println(">>> PDF 파일 열기: " + output.toAbsolutePath());
+        assertThat(pdf).isNotEmpty();
     }
 
     private ContractBaseReqDto buildSampleDto() {

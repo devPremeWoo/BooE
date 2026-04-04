@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>월세 계약서</title>
     <style>
         body {
@@ -12,7 +12,7 @@
             padding: 40px;
             margin: 0;
             font-size: 12px;
-            font-family: 'Malgun Gothic', sans-serif;
+            font-family: 'MalgunGothic', sans-serif;
         }
 
         .a4 {
@@ -60,28 +60,36 @@
             border-top: #000 2px solid;
         }
 
-        .section-label {
-            font-weight: bold;
-        }
+        .section-label {}
 
         .property-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             table-layout: fixed;
-            border-style: hidden;
+            border: none;
         }
 
         .property-table td {
-            border: 1px solid #000;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            border-top: none;
+            border-left: none;
             padding: 2px 0px;
             vertical-align: middle;
             height: 20px;
         }
 
+        .property-table tr td:last-child {
+            border-right: none;
+        }
+
+        .property-table tr:last-child td {
+            border-bottom: none;
+        }
+
         .label-main {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            text-align: center;
+            background-color: #f2f2f2;text-align: center;
         }
 
         .label-sub {
@@ -103,38 +111,35 @@
 
         .payment-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             table-layout: fixed;
             border-top: 2px solid #000;
-            border-bottom: 2px solid #000;
+            border-bottom: none;
+            border-left: none;
+            border-right: none;
         }
 
         .payment-table td {
-            border: 1px solid #000;
+            border-bottom: 1px solid #000;
+            border-top: none;
+            border-left: none;
+            border-right: none;
             padding: 2px 5px;
             height: 20px;
             vertical-align: middle;
         }
 
-        .payment-table td.amount-value,
-        .payment-table td.payment-desc,
-        .payment-table td.data-content {
-            border-left: none !important;
-            border-right: none !important;
-        }
-
         .payment-table tr td:first-child {
-            border-left: none !important;
+            border-right: 1px solid #000;
         }
 
-        .payment-table tr td:last-child {
-            border-right: none !important;
+        .payment-table tr:last-child td {
+            border-bottom: none;
         }
 
         .amount-label {
             text-align: center;
-            font-weight: bold;
-            border-right: none !important
         }
 
         .amount-value {
@@ -149,19 +154,21 @@
 
         .receiver-cell {
             width: 145px;
-            padding: 0 10px !important;
-            font-weight: bold;
-        }
+            padding: 0 10px !important;}
 
         .terms-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             table-layout: fixed;
             font-size: 10px;
         }
 
         .terms-table td {
             border-bottom: 1px solid #d3d3d3;
+            border-top: none;
+            border-left: none;
+            border-right: none;
             padding: 4px 5px;
             line-height: 1.5;
         }
@@ -191,14 +198,18 @@
 
         .parties-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             table-layout: fixed;
             border: none;
             font-size: 10px;
         }
 
         .parties-table td {
-            border: 1px solid #000;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            border-top: none;
+            border-left: none;
             height: 24px;
             vertical-align: middle;
             box-sizing: border-box;
@@ -211,15 +222,7 @@
             break-inside: avoid;
         }
 
-        .parties-table tbody:first-of-type tr:first-child td {
-            border-top: none;
-        }
-
-        .parties-table tr td:first-child {
-            border-left: none;
-        }
-
-        .parties-table tr td:last-child {
+        .parties-table td.stamp-text {
             border-right: none;
         }
 
@@ -229,16 +232,12 @@
         }
 
         .party-label-main {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            text-align: center;
+            background-color: #f2f2f2;text-align: center;
         }
 
         .party-label-sub {
             background-color: #f9f9f9;
-            text-align: center;
-            font-weight: bold;
-        }
+            text-align: center;}
 
         .party-data {
             text-align: center;
@@ -282,20 +281,20 @@
 
         <div class="section">
             임대인과 임차인 쌍방은 아래 표시 부동산에 관하여 다음 내용과 같이 임대차계약을 체결한다.
-            <br>
+            <br/>
             <span class="section-label">1. 부동산의 표시</span>
         </div>
 
         <div class="section" style="padding: 0;">
             <table class="property-table">
                 <colgroup>
-                    <col style="width: 95px;">
-                    <col style="width: 70px;">
-                    <col style="width: auto;">
-                    <col style="width: 95px;">
-                    <col style="width: 170px;">
-                    <col style="width: 70px;">
-                    <col style="width: 120px;">
+                    <col style="width: 95px;"/>
+                    <col style="width: 70px;"/>
+                    <col style="width: auto;"/>
+                    <col style="width: 95px;"/>
+                    <col style="width: 170px;"/>
+                    <col style="width: 70px;"/>
+                    <col style="width: 120px;"/>
                 </colgroup>
                 <tr>
                     <td class="label-main">소재지</td>
@@ -328,12 +327,12 @@
 
         <div class="section" style="padding: 0;">
             <div style="padding: 2px 10px;">
-                <span class="section-label">2. 계약 내용</span><br>
+                <span class="section-label">2. 계약 내용</span><br/>
             </div>
             <table class="terms-table" style="border-top: none;">
                 <colgroup>
-                    <col style="width: 60px;">
-                    <col style="width: auto;">
+                    <col style="width: 60px;"/>
+                    <col style="width: auto;"/>
                 </colgroup>
                 <tr>
                     <td class="term-title">제 1조</td>
@@ -343,11 +342,11 @@
 
             <table class="payment-table">
                 <colgroup>
-                    <col style="width: 95px;">
-                    <col style="width: 36px;">
-                    <col style="width: auto;">
-                    <col style="width: 190px;">
-                    <col style="width: 170px;">
+                    <col style="width: 95px;"/>
+                    <col style="width: 36px;"/>
+                    <col style="width: auto;"/>
+                    <col style="width: 190px;"/>
+                    <col style="width: 170px;"/>
                 </colgroup>
                 <tr>
                     <td class="label-main">보 증 금</td>
@@ -360,8 +359,7 @@
                     <td class="amount-value" th:text="${downPayment}">정 일천오백만원</td>
                     <td class="payment-desc">은 계약 시에 지불하고 영수함.</td>
                     <td class="receiver-cell">
-                        <div
-                                style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div class="receiver-inner" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                             <span>영수자</span><span style="color: #cec4c4;">인</span>
                         </div>
                     </td>
@@ -408,15 +406,15 @@
 
             <table class="terms-table">
                 <colgroup>
-                    <col style="width: 50px;">
-                    <col style="width: auto;">
+                    <col style="width: 50px;"/>
+                    <col style="width: auto;"/>
                 </colgroup>
                 <tr>
-                    <td class="term-title">제 2조</td>
-                    <td class="term-desc">(존속기간) 임대인은 위 부동산을 임대차 목적대로 사용 수익할 수 있는 상태로 하여 <span
-                            style="font-weight: bold;" th:text="${startDate}">2026년 04월 03일</span>까지 임차인에게 인도하며,
+                    <td class="term-title" style="border-top: 2px solid #000;">제 2조</td>
+                    <td class="term-desc" style="border-top: 2px solid #000;">(존속기간) 임대인은 위 부동산을 임대차 목적대로 사용 수익할 수 있는 상태로 하여 <span
+                            th:text="${startDate}">2026년 04월 03일</span>까지 임차인에게 인도하며,
                         임대차기간은 인도일로부터 <span style="border-bottom: 1px solid #000; padding: 0 5px;"
-                                            th:text="${duration}">24</span>개월인 <span style="font-weight: bold;"
+                                            th:text="${duration}">24</span>개월인 <span
                                                                                      th:text="${endDate}">2028년 04월 02일</span>까지로 한다.</td>
                 </tr>
                 <tr>
@@ -465,33 +463,33 @@
 
         <div class="section section-date">
             <span>본 계약을 증명하기 위하여 계약 당사자가 이의 없음을 확인하고 각자 서명 또는 날인한다.</span>
-            <span style="font-weight: bold;" th:text="${#temporals.format(currentDate, 'yyyy년 MM월 dd일')}">2026년 04월
+            <span th:text="${#temporals.format(currentDate, 'yyyy년 MM월 dd일')}">2026년 04월
                     03일</span>
         </div>
 
         <div class="section" style="padding: 0;">
             <table class="parties-table">
                 <colgroup>
-                    <col style="width: 35px;">
-                    <col style="width: 50px;">
-                    <col style="width: 100px;">
-                    <col style="width: 36px;">
-                    <col style="width: 120px;">
-                    <col style="width: 48px;">
-                    <col style="width: 120px;">
-                    <col style="width: 30px;">
-                    <col style="width: auto;">
-                    <col style="width: 60px;">
+                    <col style="width: 35px;"/>
+                    <col style="width: 50px;"/>
+                    <col style="width: 100px;"/>
+                    <col style="width: 36px;"/>
+                    <col style="width: 120px;"/>
+                    <col style="width: 48px;"/>
+                    <col style="width: 120px;"/>
+                    <col style="width: 30px;"/>
+                    <col style="width: auto;"/>
+                    <col style="width: 60px;"/>
                 </colgroup>
                 <tbody th:each="owner, stat : ${landlords}">
                     <tr>
                         <td rowspan="2" class="party-label-main"
-                            th:utext="${stat.first ? '임<br>대<br>인' : '공동<br>명의인'}">공동<br>명의인
+                            th:utext="${stat.first ? '임<br/>대<br/>인' : '공동<br/>명의인'}">공동<br/>명의인
                         </td>
                         <td class="party-label-sub">주 소</td>
                         <td colspan="5" class="party-data address" th:text="${owner.address}"></td>
                         <td rowspan="2" class="party-label-main">성명</td>
-                        <td rowspan="2" class="party-data" style="font-weight: bold;" th:text="${owner.name}"></td>
+                        <td rowspan="2" class="party-data" th:text="${owner.name}"></td>
                         <td rowspan="2" class="party-label-main stamp-text">(인)</td>
                     </tr>
                     <tr>
@@ -506,11 +504,11 @@
                 <tbody th:each="user, stat : ${tenants}">
                     <tr>
                         <td rowspan="2" class="party-label-main"
-                            th:utext="${stat.first ? '임<br>차<br>인' : '공동<br>명의인'}">임<br>대<br>인</td>
+                            th:utext="${stat.first ? '임<br/>차<br/>인' : '공동<br/>명의인'}">임<br/>대<br/>인</td>
                         <td class="party-label-sub">주 소</td>
                         <td colspan="5" class="party-data address" th:text="${user.address}">임시로 좀 볼까</td>
                         <td rowspan="2" class="party-label-main">성명</td>
-                        <td rowspan="2" class="party-data" style="font-weight: bold;" th:text="${user.name}">
+                        <td rowspan="2" class="party-data" th:text="${user.name}">
                         </td>
                         <td rowspan="2" class="party-label-main stamp-text">(인)</td>
                     </tr>

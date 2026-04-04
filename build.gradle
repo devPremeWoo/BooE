@@ -51,7 +51,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-admin:9.4.3'
 
     // PDF 생성
-    implementation 'org.apache.pdfbox:pdfbox:3.0.3'
+    implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
 
     // 테스트용
     testImplementation 'io.projectreactor:reactor-test'
