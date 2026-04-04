@@ -3,7 +3,7 @@ package org.hyeong.booe.contract.controller;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
@@ -20,6 +20,7 @@ import org.hyeong.booe.property.service.PropertyCompositeService;
 import org.hyeong.booe.property.service.PropertyUnitSelectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -36,6 +37,11 @@ public class ContractPropertyController {
     private final PropertyCompositeService propertyCompositeService;
     private final ContractService contractService;
 
+    @GetMapping("/contract")
+    public String contract() {
+        return "contracts/monthlyContractDoc";
+    }
+
     @PostMapping("/units")
     public Mono<BuildingUnitResDto> getSelectableUnits(@RequestBody BuildingInfoReqDto queryDto) {
         //return propertyUnitSelectionService.getSelectableDongHo(queryDto);
@@ -50,7 +56,7 @@ public class ContractPropertyController {
     }
 
     @PostMapping("/draft")
-    public ResponseEntity<Long> saveDraft(@RequestBody ContractSaveReqDto reqDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Long> saveDraft(@RequestBody @Validated(ContractBaseReqDto.TempSave.class) ContractBaseReqDto reqDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long savedId = contractService.save(reqDto, userDetails.getMemberId());
         return ResponseEntity
                 .created(URI.create("/contracts/" + savedId))
@@ -58,7 +64,7 @@ public class ContractPropertyController {
     }
 
     @PostMapping("/review-request")
-    public ResponseEntity<Void> requestReview(@RequestBody ReviewRequestDto reqDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Void> requestReview(@RequestBody @Validated ReviewRequestDto reqDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
         contractService.requestReview(reqDto, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }
@@ -70,7 +76,7 @@ public class ContractPropertyController {
 
     @PostMapping("/{contractId}/lessee-submit")
     public ResponseEntity<Void> submitLesseeInfo(@PathVariable Long contractId,
-                                                  @RequestBody ContractSaveReqDto reqDto,
+                                                  @RequestBody @Validated(ContractBaseReqDto.LesseeSubmit.class) ContractBaseReqDto reqDto,
                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         contractService.submitLesseeInfo(contractId, reqDto, userDetails.getMemberId());
         return ResponseEntity.ok().build();
@@ -83,6 +89,8 @@ public class ContractPropertyController {
         contractService.confirmDownPayment(contractId, reqDto, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }
+
+
 
 
 

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hyeong.booe.contract.domain.type.ContractStatus;
 import org.hyeong.booe.contract.domain.type.ContractType;
-import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.global.entity.BaseEntity;
 import org.hyeong.booe.member.domain.Member;
 
@@ -63,6 +63,9 @@ public class Contract extends BaseEntity {
     @Column(name = "receiver_phone", length = 20)
     private String receiverPhone;  // 계약금 영수자 연락처
 
+    @Column(name = "modusign_document_id", length = 100)
+    private String modusignDocumentId;
+
     @Builder
     private Contract(Member member, String title, String address, ContractStatus status, ContractType type,
                      Long totalDeposit, Long monthlyRent, LocalDate startDate, LocalDate endDate, Integer termMonths) {
@@ -78,7 +81,7 @@ public class Contract extends BaseEntity {
         this.termMonths = termMonths;
     }
 
-    public static Contract createContract(Member member, ContractSaveReqDto dto) {
+    public static Contract createContract(Member member, ContractBaseReqDto dto) {
         return Contract.builder()
                 .member(member)
                 .title(dto.getTitle())
@@ -93,7 +96,7 @@ public class Contract extends BaseEntity {
                 .build();
     }
 
-    public void update(ContractSaveReqDto dto) {
+    public void update(ContractBaseReqDto dto) {
         this.title = dto.getTitle();
         this.address = dto.getAddressInfo().getAddress();
         this.totalDeposit = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getDeposit() : null;
@@ -122,7 +125,8 @@ public class Contract extends BaseEntity {
         this.status = ContractStatus.PAYMENT_COMPLETED;
     }
 
-    public void requestSign() {
+    public void requestSign(String modusignDocumentId) {
+        this.modusignDocumentId = modusignDocumentId;
         this.status = ContractStatus.SIGN_REQUESTED;
     }
 

@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hyeong.booe.contract.domain.type.PartyRole;
-import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 
 @Entity
 @Getter
@@ -47,7 +47,7 @@ public class ContractParty {
         this.address = address;
     }
 
-    public static ContractParty createContractParty(Contract contract, ContractSaveReqDto.PersonInfo personInfo, PartyRole role) {
+    public static ContractParty createContractParty(Contract contract, ContractBaseReqDto.PersonInfo personInfo, PartyRole role) {
         return ContractParty.builder()
                 .contract(contract)
                 .role(role)

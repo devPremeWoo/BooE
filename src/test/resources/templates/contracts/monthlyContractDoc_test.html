@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>월간 계약서 - 테스트</title>
+    <style>
+        body {
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+            margin: 0;
+            font-size: 10px;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .a4 {
+            width: 210mm;
+            background-color: #fff;
+            padding: 10mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .contract-box {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .section {
+            width: 100%;
+            border-left: 2px solid #000;
+            border-right: 2px solid #000;
+            border-bottom: 2px solid #000;
+            padding: 2px 5px;
+            box-sizing: border-box;
+        }
+
+        .section:first-child {
+            border-top: 2px solid #000;
+        }
+
+        .section:last-child {
+            border-bottom: 2px solid #000;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 1.7em;
+            font-weight: bold;
+            padding: 10px;
+        }
+
+        .section-date {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-label {
+            font-weight: bold;
+        }
+
+        .property-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border-style: hidden;
+        }
+
+        .property-table td {
+            border: 1px solid #000;
+            padding: 2px 0px;
+            vertical-align: middle;
+            height: 17px;
+        }
+
+        .label-main {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .label-sub {
+            background-color: #f9f9f9;
+            font-size: 11px;
+            text-align: center;
+            width: 60px;
+        }
+
+        .data-content {
+            text-align: center;
+            background-color: #fff;
+        }
+
+        .text-left {
+            text-align: left !important;
+            padding-left: 8px !important;
+        }
+
+        .payment-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border-top: 2px solid #000;
+            border-bottom: 2px solid #000;
+        }
+
+        .payment-table td {
+            border: 1px solid #000;
+            padding: 2px 5px;
+            height: 17px;
+            vertical-align: middle;
+        }
+
+        .payment-table td.amount-value,
+        .payment-table td.payment-desc,
+        .payment-table td.data-content {
+            border-left: none !important;
+            border-right: none !important;
+        }
+
+        .payment-table tr td:first-child {
+            border-left: none !important;
+        }
+
+        .payment-table tr td:last-child {
+            border-right: none !important;
+        }
+
+        .amount-label {
+            text-align: center;
+            font-weight: bold;
+            border-right: none !important
+        }
+
+        .amount-value {
+            text-align: center;
+        }
+
+        .payment-desc {
+            text-align: left;
+            white-space: nowrap;
+            padding-right: 10px;
+        }
+
+        .receiver-cell {
+            width: 120px;
+            padding: 0 10px !important;
+            font-weight: bold;
+        }
+
+        .terms-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 8px;
+        }
+
+        .terms-table td {
+            border-bottom: 1px solid #d3d3d3;
+            padding: 4px 5px;
+            line-height: 1.5;
+        }
+
+        .term-title {
+            width: 80px;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+            background-color: #f2f2f2;
+        }
+
+        .term-desc {
+            text-align: left;
+            vertical-align: middle;
+            padding: 6px 10px;
+            line-height: 1.6;
+            word-break: keep-all;
+        }
+
+        .special-term {
+            padding: 2px 5px !important;
+            line-height: 1.3 !important;
+            font-size: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .parties-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: none;
+            font-size: 8px;
+        }
+
+        .parties-table td {
+            border: 1px solid #000;
+            height: 22px;
+            vertical-align: middle;
+            padding: 2px 2px;
+            box-sizing: border-box;
+            white-space: nowrap;
+        }
+
+        .parties-table tr {
+            page-break-inside: avoid;
+        }
+
+        .parties-table tr:first-child td {
+            border-top: none;
+        }
+
+        .parties-table tr td:first-child {
+            border-left: none;
+        }
+
+        .parties-table tr td:last-child {
+            border-right: none;
+        }
+
+        .parties-table tr:last-child td,
+        .parties-table tr:nth-last-child(2) td[rowspan] {
+            border-bottom: none;
+        }
+
+        .party-label-main {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .party-label-sub {
+            background-color: #f9f9f9;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .party-data {
+            text-align: center;
+            background-color: #fff;
+        }
+
+        .party-data.address {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        .stamp-text {
+            color: #cec4c4;
+            font-size: 8px;
+        }
+
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+            }
+
+            .a4 {
+                box-shadow: none;
+                padding: 10mm;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="a4">
+    <div class="contract-box">
+        <div class="section section-title">오피스텔 임대차 계약서</div>
+
+        <div class="section">
+            임대인과 임차인 쌍방은 아래 표시 오피스텔에 관하여 다음 내용과 같이 임대차계약을 체결한다.
+            <br>
+            <span class="section-label">1. 부동산의 표시</span>
+        </div>
+
+        <div class="section" style="padding: 0;">
+            <table class="property-table">
+                <colgroup>
+                    <col style="width: 80px;">
+                    <col style="width: 45px;">
+                    <col style="width: auto;">
+                    <col style="width: 80px;">
+                    <col style="width: 140px;">
+                    <col style="width: 60px;">
+                    <col style="width: 100px;">
+                </colgroup>
+                <tr>
+                    <td class="label-main">소재지</td>
+                    <td colspan="6" class="data-content text-left">서울특별시 강남구 테헤란로 123 XX오피스텔 501동 1201호</td>
+                </tr>
+                <tr>
+                    <td class="label-main">토 지</td>
+                    <td class="label-sub" style="width:40px;">지 목</td>
+                    <td class="data-content">대</td>
+                    <td class="label-sub" style="width:100px;">대지권의 비율</td>
+                    <td class="data-content" style="width:120px;">12345분의 33</td>
+                    <td class="label-sub" style="width:45px;">면 적</td>
+                    <td class="data-content">25.5㎡</td>
+                </tr>
+                <tr>
+                    <td class="label-main">건 물</td>
+                    <td class="label-sub">구 조</td>
+                    <td class="data-content">철근콘크리트</td>
+                    <td class="label-sub">용 도</td>
+                    <td class="data-content">오피스텔</td>
+                    <td class="label-sub">전용면적</td>
+                    <td class="data-content">84.5㎡</td>
+                </tr>
+                <tr>
+                    <td class="label-main">임대할 부분</td>
+                    <td colspan="6" class="data-content text-left">해당 층 전체</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section" style="padding: 0;">
+            <div style="padding: 2px 10px;">
+                <span class="section-label">2. 계약 내용</span><br>
+            </div>
+            <table class="terms-table" style="border-top: none;">
+                <colgroup>
+                    <col style="width: 50px;">
+                    <col style="width: auto;">
+                </colgroup>
+                <tr>
+                    <td class="term-title">제 1조</td>
+                    <td class="term-desc">(목적) 위 부동산의 임대차에 한하여 임대인과 임차인은 합의에 의하여 임차보증금 및 차임을 아래와 같이 지불한다.</td>
+                </tr>
+            </table>
+
+            <table class="payment-table">
+                <colgroup>
+                    <col style="width: 80px;">
+                    <col style="width: 30px;">
+                    <col style="width: auto;">
+                    <col style="width: 160px;">
+                    <col style="width: 140px;">
+                </colgroup>
+                <tr>
+                    <td class="label-main">보 증 금</td>
+                    <td class="amount-label">金</td>
+                    <td class="amount-value" colspan="3">정 일억오천만원</td>
+                </tr>
+                <tr>
+                    <td class="label-main">계 약 금</td>
+                    <td class="amount-label">金</td>
+                    <td class="amount-value">정 일천오백만원</td>
+                    <td class="payment-desc">은 계약 시에 지불하고 영수함.</td>
+                    <td class="receiver-cell">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span>영수자</span><span style="color: #cec4c4;">인</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-main">중 도 금</td>
+                    <td class="amount-label">金</td>
+                    <td class="amount-value">정 삼천만원</td>
+                    <td class="payment-desc">은 2026년 06월 01일</td>
+                    <td class="data-content" style="text-align: left;">에 지불한다.</td>
+                </tr>
+                <tr>
+                    <td class="label-main">잔 금</td>
+                    <td class="amount-label">金</td>
+                    <td class="amount-value">정 일억오백만원</td>
+                    <td class="payment-desc">은 2026년 07월 01일</td>
+                    <td class="data-content" style="text-align: left;">에 지불한다.</td>
+                </tr>
+                <tr>
+                    <td class="label-main">월 세</td>
+                    <td class="amount-label">金</td>
+                    <td class="amount-value">정 오십만원</td>
+                    <td class="payment-desc">은 후불로 매월 25</td>
+                    <td class="data-content" style="text-align: left;">일에 지불한다.</td>
+                </tr>
+            </table>
+
+            <table class="terms-table">
+                <colgroup>
+                    <col style="width: 50px;">
+                    <col style="width: auto;">
+                </colgroup>
+                <tr>
+                    <td class="term-title">제 2조</td>
+                    <td class="term-desc">(존속기간) 임대인은 위 부동산을 임대차 목적대로 사용 수익할 수 있는 상태로 하여 <span
+                            style="font-weight: bold;">2026년 06월 01일</span>까지 임차인에게 인도하며,
+                        임대차기간은 인도일로부터 <span style="border-bottom: 1px solid #000; padding: 0 5px;">24</span>개월인 <span style="font-weight: bold;">2028년 05월 31일</span>까지로 한다.</td>
+                </tr>
+                <tr>
+                    <td class="term-title">제 3조</td>
+                    <td class="term-desc">(용도변경 및 전대 등) 임차인은 임대인의 동의 없이 위 부동산의 용도나 구조를 변경하거나 전대, 임차권 양도 또는 담보제공을 하지
+                        못하며 임대차 목적 이외의 용도로 사용할 수 없다.</td>
+                </tr>
+                <tr>
+                    <td class="term-title">제 4조</td>
+                    <td class="term-desc">(계약의 해지) 임차인이 2기의 차임액에 달하도록 연체하거나 제3조를 위반하였을 때 임대인은 즉시 본 계약을 해지할 수 있다.</td>
+                </tr>
+                <tr>
+                    <td class="term-title">제 5조</td>
+                    <td class="term-desc">(계약의 종료) 임대차계약이 종료된 경우에 임차인은 위 부동산을 원상으로 회복하여 임대인에게 반환한다. 이러한 경우 임대인은 보증금을
+                        임차인에게 반환하고, 연체 임대료 또는 손해배상금이 있을 때는 이들을 제하고 그 잔액을 반환한다.</td>
+                </tr>
+                <tr>
+                    <td class="term-title">제 6조</td>
+                    <td class="term-desc">(계약의 해제) 임차인이 임대인에게 중도금(중도금이 없을 때는 잔금)을 지불하기 전까지, 임대인은 계약금의 배액을 상환하고, 임차인은
+                        계약금을 포기하고 이 계약을 해제할 수 있다.</td>
+                </tr>
+                <tr>
+                    <td class="term-title">제 7조</td>
+                    <td class="term-desc">(채무불이행과 손해배상) 임대인 또는 임차인이 본 계약상의 내용에 대하여 불이행이 있을 경우 그 상대방은 불이행한 자에 대하여
+                        서면으로 최고하고 계약을 해제할 수 있다. 그리고 계약 당사자는 계약해제에 따른 손해배상을 각각 상대방에 대하여 청구할 수 있으며, 손해배상에 대하여 별도의 약정이
+                        없는 한 계약금을 손해배상의 기준으로 본다.</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section" style="min-height: 130px; padding: 5px; border-bottom: none;">
+            <span class="section-label">[특약사항]</span>
+            <table class="terms-table" style="border: none; margin-top: 3px;">
+                <tr>
+                    <td class="special-term">1. 시설물 파손 시 원상복구하기로 한다.</td>
+                </tr>
+                <tr>
+                    <td class="special-term">2. 반려동물 입주 불가.</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section section-date">
+            <span>본 계약을 증명하기 위하여 계약 당사자가 이의 없음을 확인하고 각자 서명 또는 날인한다.</span>
+            <span style="font-weight: bold;">2026년 04월 03일</span>
+        </div>
+
+        <div class="section" style="padding: 0;">
+            <table class="parties-table">
+                <colgroup>
+                    <col style="width: 30px;">
+                    <col style="width: 40px;">
+                    <col style="width: 120px;">
+                    <col style="width: 30px;">
+                    <col style="width: 100px;">
+                    <col style="width: 40px;">
+                    <col style="width: 100px;">
+                    <col style="width: 30px;">
+                    <col style="width: auto;">
+                    <col style="width: 50px;">
+                </colgroup>
+
+                <!-- ===== 임대인 ===== -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">임<br>대<br>인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">서울특별시 강남구 테헤란로 100</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">홍임대</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">02-1234-5678</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-1111-2222</td>
+                </tr>
+                <!-- 공동명의인 1 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">서울특별시 서초구 반포대로 50</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">김공동A</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">02-1111-0001</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0001</td>
+                </tr>
+                <!-- 공동명의인 2 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">경기도 성남시 분당구 판교로 200</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">박공동B</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">02-1111-0002</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0002</td>
+                </tr>
+                <!-- 공동명의인 3 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">경기도 용인시 수지구 성복로 10</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">이공동C</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">031-1111-0003</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0003</td>
+                </tr>
+                <!-- 공동명의인 4 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">인천광역시 남동구 인하로 77</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">최공동D</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">032-1111-0004</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0004</td>
+                </tr>
+                <!-- 공동명의인 5 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">대전광역시 유성구 대학로 99</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">정공동E</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">042-1111-0005</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0005</td>
+                </tr>
+                <!-- 공동명의인 6 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">부산광역시 해운대구 해운대로 500</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">강공동F</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">051-1111-0006</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0006</td>
+                </tr>
+                <!-- 공동명의인 7 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">광주광역시 북구 용봉로 33</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">윤공동G</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">062-1111-0007</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0007</td>
+                </tr>
+                <!-- 공동명의인 8 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">대구광역시 수성구 달구벌대로 700</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">조공동H</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">053-1111-0008</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0008</td>
+                </tr>
+                <!-- 공동명의인 9 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">울산광역시 남구 삼산로 150</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">한공동I</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">052-1111-0009</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-2001-0009</td>
+                </tr>
+
+                <!-- ===== 임차인 ===== -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">임<br>차<br>인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">서울특별시 마포구 월드컵북로 300</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">이임차</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">02-5555-6666</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-7777-8888</td>
+                </tr>
+                <!-- 공동명의인 1 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">서울특별시 용산구 이태원로 55</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">최공동가</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">02-3001-0001</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0001</td>
+                </tr>
+                <!-- 공동명의인 2 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">서울특별시 송파구 올림픽로 300</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">장공동나</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">02-3001-0002</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0002</td>
+                </tr>
+                <!-- 공동명의인 3 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">경기도 고양시 일산동구 중앙로 1200</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">임공동다</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">031-3001-0003</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0003</td>
+                </tr>
+                <!-- 공동명의인 4 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">경기도 수원시 영통구 광교로 80</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">오공동라</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">031-3001-0004</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0004</td>
+                </tr>
+                <!-- 공동명의인 5 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">세종특별자치시 한누리대로 2130</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">서공동마</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">044-3001-0005</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0005</td>
+                </tr>
+                <!-- 공동명의인 6 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">제주특별자치도 제주시 연동 123</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">신공동바</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">064-3001-0006</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0006</td>
+                </tr>
+                <!-- 공동명의인 7 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">강원특별자치도 춘천시 중앙로 1</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">배공동사</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">033-3001-0007</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0007</td>
+                </tr>
+                <!-- 공동명의인 8 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">전라북도 전주시 완산구 전주객사길 22</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">류공동아</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">063-3001-0008</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0008</td>
+                </tr>
+                <!-- 공동명의인 9 -->
+                <tr>
+                    <td rowspan="2" class="party-label-main">공동<br>명의인</td>
+                    <td class="party-label-sub">주 소</td>
+                    <td colspan="5" class="party-data address">충청남도 천안시 서북구 불당로 100</td>
+                    <td rowspan="2" class="party-label-main">성명</td>
+                    <td rowspan="2" class="party-data" style="font-weight: bold;">문공동자</td>
+                    <td rowspan="2" class="party-label-main stamp-text">(인)</td>
+                </tr>
+                <tr>
+                    <td class="party-label-sub">주민번호</td>
+                    <td class="party-data"></td>
+                    <td class="party-label-sub">전 화</td>
+                    <td class="party-data">041-3001-0009</td>
+                    <td class="party-label-sub">휴대전화</td>
+                    <td class="party-data">010-3001-0009</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

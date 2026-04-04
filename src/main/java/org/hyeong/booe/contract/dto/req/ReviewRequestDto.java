@@ -1,5 +1,10 @@
 package org.hyeong.booe.contract.dto.req;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.groups.ConvertGroup;
+import jakarta.validation.groups.Default;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +16,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReviewRequestDto {
 
-    private ContractSaveReqDto contract;
+    @NotNull
+    @Valid
+    @ConvertGroup(from = Default.class, to = ContractBaseReqDto.ReviewRequest.class)
+    private ContractBaseReqDto contract;
+
+    @NotBlank
     private String lesseePhoneNumber;
 }

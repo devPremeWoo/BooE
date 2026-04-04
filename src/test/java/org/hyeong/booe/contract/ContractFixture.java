@@ -1,7 +1,7 @@
 package org.hyeong.booe.contract;
 
 import org.hyeong.booe.contract.domain.Contract;
-import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.member.domain.Member;
 import org.hyeong.booe.member.domain.MemberProfile;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -27,21 +27,21 @@ public class ContractFixture {
                 .build();
     }
 
-    public static ContractSaveReqDto saveDto(Long contractId) {
-        ContractSaveReqDto dto = new ContractSaveReqDto();
+    public static ContractBaseReqDto saveDto(Long contractId) {
+        ContractBaseReqDto dto = new ContractBaseReqDto();
         ReflectionTestUtils.setField(dto, "contractId", contractId);
         ReflectionTestUtils.setField(dto, "title", "테스트 월세 계약서");
 
-        ContractSaveReqDto.AddressInfo addressInfo = new ContractSaveReqDto.AddressInfo();
+        ContractBaseReqDto.AddressInfo addressInfo = new ContractBaseReqDto.AddressInfo();
         ReflectionTestUtils.setField(addressInfo, "address", "서울시 강남구 테헤란로 123");
         ReflectionTestUtils.setField(dto, "addressInfo", addressInfo);
 
-        ContractSaveReqDto.PaymentInfo paymentInfo = new ContractSaveReqDto.PaymentInfo();
+        ContractBaseReqDto.PaymentInfo paymentInfo = new ContractBaseReqDto.PaymentInfo();
         ReflectionTestUtils.setField(paymentInfo, "deposit", 10_000_000L);
         ReflectionTestUtils.setField(paymentInfo, "monthlyRent", 500_000L);
         ReflectionTestUtils.setField(dto, "paymentInfo", paymentInfo);
 
-        ContractSaveReqDto.LeaseTerm leaseTerm = new ContractSaveReqDto.LeaseTerm();
+        ContractBaseReqDto.LeaseTerm leaseTerm = new ContractBaseReqDto.LeaseTerm();
         ReflectionTestUtils.setField(leaseTerm, "moveInDate", LocalDate.of(2026, 6, 1));
         ReflectionTestUtils.setField(leaseTerm, "leaseMonths", 12);
         ReflectionTestUtils.setField(leaseTerm, "leaseEndDate", LocalDate.of(2027, 5, 31));
@@ -53,8 +53,8 @@ public class ContractFixture {
         return dto;
     }
 
-    public static ContractSaveReqDto.PersonInfo personInfo(String name, String address, String mobile) {
-        ContractSaveReqDto.PersonInfo info = new ContractSaveReqDto.PersonInfo();
+    public static ContractBaseReqDto.PersonInfo personInfo(String name, String address, String mobile) {
+        ContractBaseReqDto.PersonInfo info = new ContractBaseReqDto.PersonInfo();
         ReflectionTestUtils.setField(info, "name", name);
         ReflectionTestUtils.setField(info, "address", address);
         ReflectionTestUtils.setField(info, "mobile", mobile);

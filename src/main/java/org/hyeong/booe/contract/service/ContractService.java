@@ -8,7 +8,7 @@ import org.hyeong.booe.contract.domain.Contract;
 import org.hyeong.booe.contract.domain.ContractFormData;
 import org.hyeong.booe.contract.domain.ContractParty;
 import org.hyeong.booe.contract.domain.type.PartyRole;
-import org.hyeong.booe.contract.dto.req.ContractSaveReqDto;
+import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
 import org.hyeong.booe.contract.dto.res.ContractResDto;
@@ -50,7 +50,7 @@ public class ContractService {
 
     // 임시저장 (임대인) - contractId 없으면 신규, 있으면 수정
     @Transactional
-    public Long save(ContractSaveReqDto dto, Long memberId) {
+    public Long save(ContractBaseReqDto dto, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
 
@@ -92,7 +92,7 @@ public class ContractService {
 
     // 임차인 정보 입력 완료
     @Transactional
-    public void submitLesseeInfo(Long contractId, ContractSaveReqDto dto, Long lesseeMemberId) {
+    public void submitLesseeInfo(Long contractId, ContractBaseReqDto dto, Long lesseeMemberId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(ContractNotFoundException::new);
         validateLesseeAccess(contract, lesseeMemberId);
@@ -116,7 +116,7 @@ public class ContractService {
         contract.confirmByLessor(dto.getReceiverName(), dto.getReceiverPhone());
     }
 
-    private Contract resolveContract(ContractSaveReqDto dto, Member member, Long memberId) {
+    private Contract resolveContract(ContractBaseReqDto dto, Member member, Long memberId) {
         if (dto.getContractId() == null) {
             return contractRepository.save(Contract.createContract(member, dto));
         }
@@ -150,7 +150,7 @@ public class ContractService {
         }
     }
 
-    private void saveFormData(Contract contract, ContractSaveReqDto dto) {
+    private void saveFormData(Contract contract, ContractBaseReqDto dto) {
         String formJson = serializeToJson(dto);
         contractFormDataRepository.findById(contract.getId())
                 .ifPresentOrElse(
@@ -159,26 +159,26 @@ public class ContractService {
                 );
     }
 
-    private void replaceParties(Contract contract, ContractSaveReqDto dto) {
+    private void replaceParties(Contract contract, ContractBaseReqDto dto) {
         contractPartyRepository.deleteAllByContract(contract);
         contractPartyRepository.saveAll(createParties(contract, dto));
     }
 
-    private void replaceLesseeParties(Contract contract, List<ContractSaveReqDto.PersonInfo> lessees) {
+    private void replaceLesseeParties(Contract contract, List<ContractBaseReqDto.PersonInfo> lessees) {
         contractPartyRepository.deleteAllByContractAndRoleIn(
                 contract, List.of(PartyRole.LESSEE, PartyRole.CO_LESSEE));
         contractPartyRepository.saveAll(
                 createPartiesWithRole(contract, lessees, PartyRole.LESSEE, PartyRole.CO_LESSEE));
     }
 
-    private List<ContractParty> createParties(Contract contract, ContractSaveReqDto dto) {
+    private List<ContractParty> createParties(Contract contract, ContractBaseReqDto dto) {
         List<ContractParty> parties = new ArrayList<>();
         parties.addAll(createPartiesWithRole(contract, dto.getLessors(), PartyRole.LESSOR, PartyRole.CO_LESSOR));
         parties.addAll(createPartiesWithRole(contract, dto.getLessees(), PartyRole.LESSEE, PartyRole.CO_LESSEE));
         return parties;
     }
 
-    private List<ContractParty> createPartiesWithRole(Contract contract, List<ContractSaveReqDto.PersonInfo> people,
+    private List<ContractParty> createPartiesWithRole(Contract contract, List<ContractBaseReqDto.PersonInfo> people,
                                                        PartyRole mainRole, PartyRole coRole) {
         List<ContractParty> parties = new ArrayList<>();
         if (people == null || people.isEmpty()) return parties;
@@ -204,7 +204,7 @@ public class ContractService {
                 .toList();
     }
 
-    private String serializeToJson(ContractSaveReqDto dto) {
+    private String serializeToJson(ContractBaseReqDto dto) {
         try {
             return objectMapper.writeValueAsString(dto);
         } catch (JsonProcessingException e) {
