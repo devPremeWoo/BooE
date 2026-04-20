@@ -13,6 +13,8 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -29,38 +31,17 @@ public class ContractPdfService {
     private final SpringTemplateEngine templateEngine;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
+    private static final String PDF_STYLE_OVERRIDE = loadPdfOverrideCss();
 
-    private static final String PDF_STYLE_OVERRIDE = """
-            <style>
-                body {
-                    display: block !important;
-                    background-color: #fff !important;
-                    padding: 0 !important;
-                    margin: 0 !important;
-                }
-                .a4 {
-                    width: 100% !important;
-                    box-shadow: none !important;
-                    padding: 5mm !important;
-                }
-                .section-date {
-                    display: block !important;
-                }
-                .section-date span:last-child {
-                    float: right;
-                }
-                .receiver-inner {
-                    display: block !important;
-                    width: 100% !important;
-                }
-                .receiver-inner span:last-child {
-                    float: right;
-                }
-                .contract-box .section:last-child {
-                    border-bottom: 1px solid #000 !important;
-                }
-            </style>
-            """;
+    private static String loadPdfOverrideCss() {
+        try (InputStream is = ContractPdfService.class.getResourceAsStream(
+                "/templates/contracts/pdf-override.css")) {
+            String css = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            return "<style>" + css + "</style>";
+        } catch (IOException e) {
+            throw new RuntimeException("pdf-override.css 로드 실패", e);
+        }
+    }
 
     public byte[] generatePdf(ContractBaseReqDto dto) throws IOException {
         String html = renderContractHtml(dto);

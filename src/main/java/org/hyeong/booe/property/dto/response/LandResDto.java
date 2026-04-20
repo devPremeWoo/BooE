@@ -7,5 +7,5 @@ import lombok.Getter;
 @Builder
 public class LandResDto {
     private final String jimok;     // 지목
-    private final String landArea;
+    private final String landArea;  // 면적
 }

@@ -1,0 +1,27 @@
+body {
+    display: block !important;
+    background-color: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.a4 {
+    width: 100% !important;
+    box-shadow: none !important;
+    padding: 5mm !important;
+}
+.section-date {
+    display: block !important;
+}
+.section-date span:last-child {
+    float: right;
+}
+.receiver-inner {
+    display: block !important;
+    width: 100% !important;
+}
+.receiver-inner span:last-child {
+    float: right;
+}
+.contract-box .section:last-child {
+    border-bottom: 1px solid #000 !important;
+}

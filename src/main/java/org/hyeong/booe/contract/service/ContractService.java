@@ -103,7 +103,7 @@ public class ContractService {
 
         List<String> lessorFcmTokens = findFcmTokensByMember(contract.getMember());
         fcmService.sendToAll(lessorFcmTokens, "임차인 정보 입력 완료",
-                "임차인이 정보를 입력했습니다. 확인 후 결제를 진행해주세요.", String.valueOf(contractId));
+                "임차인이 정보를 입력했습니다. 계약금 수령 확인 및 영수자 정보를 입력해주세요.", String.valueOf(contractId));
     }
 
     // 임대인 계약금 수령 확인 + 영수자 정보 입력 → 결제 요청 단계
@@ -114,6 +114,10 @@ public class ContractService {
         validateOwnership(contract, lessorMemberId);
 
         contract.confirmByLessor(dto.getReceiverName(), dto.getReceiverPhone());
+
+        List<String> lesseeFcmTokens = findFcmTokensByMember(contract.getLesseeMember());
+        fcmService.sendToAll(lesseeFcmTokens, "임대인 계약금 확인 완료",
+                "임대인이 계약금 영수를 확인했습니다. 계약서 작성을 위해 결제를 진행해주세요.", String.valueOf(contractId));
     }
 
     private Contract resolveContract(ContractBaseReqDto dto, Member member, Long memberId) {
