@@ -8,6 +8,7 @@ import org.hyeong.booe.exception.ContractAccessDeniedException;
 import org.hyeong.booe.exception.ContractNotFoundException;
 import org.hyeong.booe.exception.MemberNotFoundException;
 import org.hyeong.booe.exception.PaymentAmountMismatchException;
+import org.hyeong.booe.exception.PaymentNotFoundException;
 import org.hyeong.booe.global.fcm.FcmService;
 import org.hyeong.booe.member.repository.MemberRepository;
 import org.hyeong.booe.member.domain.Member;
@@ -15,7 +16,9 @@ import org.hyeong.booe.member.domain.MemberDevice;
 import org.hyeong.booe.member.repository.MemberDeviceRepository;
 import org.hyeong.booe.payment.api.TossPaymentApiClient;
 import org.hyeong.booe.payment.domain.Payment;
+import org.hyeong.booe.payment.domain.type.PaymentStatus;
 import org.hyeong.booe.payment.dto.PaymentConfirmReqDto;
+import org.hyeong.booe.payment.dto.PaymentRefundReqDto;
 import org.hyeong.booe.payment.dto.TossPaymentConfirmResDto;
 import org.hyeong.booe.payment.properties.PaymentProperties;
 import org.hyeong.booe.payment.repository.PaymentRepository;
@@ -105,6 +108,31 @@ public class PaymentService {
         if (!paymentProperties.getServiceFee().equals(response.getTotalAmount())) {
             throw new PaymentAmountMismatchException();
         }
+    }
+
+    @Transactional
+    public void refundPayment(PaymentRefundReqDto dto, Long memberId) {
+        Contract contract = findContract(dto.getContractId());
+        validateLesseeAccess(contract, memberId);
+
+        Payment payment = findDonePayment(dto.getContractId());
+        tossPaymentApiClient.cancelPayment(payment.getPaymentKey(), dto.getCancelReason());
+
+        payment.refund();
+        contract.cancelPayment();
+        notifyPaymentRefunded(contract);
+    }
+
+    private Payment findDonePayment(Long contractId) {
+        return paymentRepository.findByContractIdAndStatus(contractId, PaymentStatus.DONE)
+                .orElseThrow(PaymentNotFoundException::new);
+    }
+
+    private void notifyPaymentRefunded(Contract contract) {
+        String contractId = String.valueOf(contract.getId());
+        List<String> tokens = findFcmTokens(contract.getMember());
+        fcmService.sendToAll(tokens, "결제 환불 완료",
+                "결제가 환불 처리되었습니다.", contractId);
     }
 
     private void notifyPaymentCompleted(Contract contract) {

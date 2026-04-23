@@ -125,6 +125,10 @@ public class Contract extends BaseEntity {
         this.status = ContractStatus.PAYMENT_COMPLETED;
     }
 
+    public void cancelPayment() {
+        this.status = ContractStatus.PAYMENT_PENDING;
+    }
+
     public void requestSign(String modusignDocumentId) {
         this.modusignDocumentId = modusignDocumentId;
         this.status = ContractStatus.SIGN_REQUESTED;

@@ -63,6 +63,8 @@ public enum ErrorCode {
     // --- 결제 관련 ---
     PAYMENT_AMOUNT_MISMATCH(BAD_REQUEST, "P100", "결제 금액이 계약 금액과 일치하지 않습니다."),
     PAYMENT_CONFIRM_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "P101", "토스페이먼츠 결제 승인에 실패했습니다."),
+    PAYMENT_NOT_FOUND(NOT_FOUND, "P102", "결제 정보를 찾을 수 없습니다."),
+    PAYMENT_REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "P103", "토스페이먼츠 환불 처리에 실패했습니다."),
 
     // --- 500 INTERNAL SERVER ERROR ---
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S001", "서버 내부 오류가 발생했습니다."),
