@@ -60,6 +60,10 @@ public enum ErrorCode {
     DUPLICATE_MEMBER_CODE(CONFLICT, "M010", "중복된 회원 식별 코드가 생성되었습니다."),
     INACTIVE_MEMBER(CONFLICT, "M012", "탈퇴 혹은 정지된 계정입니다."), // 추가: 계정 상태 이상
 
+    // --- 결제 관련 ---
+    PAYMENT_AMOUNT_MISMATCH(BAD_REQUEST, "P100", "결제 금액이 계약 금액과 일치하지 않습니다."),
+    PAYMENT_CONFIRM_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "P101", "토스페이먼츠 결제 승인에 실패했습니다."),
+
     // --- 500 INTERNAL SERVER ERROR ---
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S001", "서버 내부 오류가 발생했습니다."),
     SAVING_MEMBER_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "S002", "회원 저장 중 오류가 발생했습니다."),

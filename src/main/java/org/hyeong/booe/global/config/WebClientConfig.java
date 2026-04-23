@@ -5,6 +5,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.RequiredArgsConstructor;
+import org.hyeong.booe.payment.api.properties.TossPaymentProperties;
 import org.hyeong.booe.property.api.properties.PublicDataProperties;
 import org.hyeong.booe.property.api.properties.VworldLadfrlProperties;
 import org.hyeong.booe.property.api.properties.VworldLdaregProperties;
@@ -17,7 +18,9 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.netty.http.client.HttpClient;
 
 import javax.net.ssl.SSLException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class WebClientConfig {
     private final PublicDataProperties properties;
     private final VworldLadfrlProperties vworldLadfrlProperties;
     private final VworldLdaregProperties vworldLdaregProperties;
+    private final TossPaymentProperties tossPaymentProperties;
 
     @Bean
     public WebClient publicDataWebClient() {
@@ -41,6 +45,20 @@ public class WebClientConfig {
     @Bean
     public WebClient vworldLdaregWebClient() {
         return createWebClient(vworldLdaregProperties.getBaseUrl(), vworldLdaregProperties.getTimeout());
+    }
+
+    @Bean
+    public WebClient tossPaymentWebClient() {
+        String encodedKey = Base64.getEncoder()
+                .encodeToString((tossPaymentProperties.getSecretKey() + ":").getBytes(StandardCharsets.UTF_8));
+
+        return WebClient.builder()
+                .baseUrl(tossPaymentProperties.getBaseUrl())
+                .defaultHeader("Authorization", "Basic " + encodedKey)
+                .defaultHeader("Content-Type", "application/json")
+                .clientConnector(new ReactorClientHttpConnector(
+                        createHttpClient(tossPaymentProperties.getTimeout())))
+                .build();
     }
 
     private WebClient createWebClient(String baseUrl, int timeout) {
