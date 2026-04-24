@@ -11,6 +11,7 @@ import org.hyeong.booe.contract.domain.type.PartyRole;
 import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
+import org.hyeong.booe.contract.dto.res.ContractListResDto;
 import org.hyeong.booe.contract.dto.res.ContractResDto;
 import org.hyeong.booe.contract.repository.ContractFormDataRepository;
 import org.hyeong.booe.contract.repository.ContractPartyRepository;
@@ -118,6 +119,63 @@ public class ContractService {
         List<String> lesseeFcmTokens = findFcmTokensByMember(contract.getLesseeMember());
         fcmService.sendToAll(lesseeFcmTokens, "임대인 계약금 확인 완료",
                 "임대인이 계약금 영수를 확인했습니다. 계약서 작성을 위해 결제를 진행해주세요.", String.valueOf(contractId));
+    }
+
+    public List<ContractListResDto> getContracts(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(MemberNotFoundException::new);
+
+        List<Contract> contracts = new ArrayList<>();
+        contracts.addAll(filterNotDeletedByLessor(member));
+        contracts.addAll(filterNotDeletedByLessee(member));
+        return contracts.stream()
+                .map(c -> ContractListResDto.of(c, memberId))
+                .toList();
+    }
+
+    @Transactional
+    public void deleteContract(Long contractId, Long memberId) {
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(ContractNotFoundException::new);
+        validateContractAccess(contract, memberId);
+
+        if (shouldHardDelete(contract, memberId)) {
+            hardDelete(contract);
+        } else {
+            softDelete(contract, memberId);
+        }
+    }
+
+    private List<Contract> filterNotDeletedByLessor(Member member) {
+        return contractRepository.findAllByMember(member).stream()
+                .filter(c -> !c.isDeletedByLessor())
+                .toList();
+    }
+
+    private List<Contract> filterNotDeletedByLessee(Member member) {
+        return contractRepository.findAllByLesseeMember(member).stream()
+                .filter(c -> !c.isDeletedByLessee())
+                .toList();
+    }
+
+    private boolean shouldHardDelete(Contract contract, Long memberId) {
+        if (contract.isPaidOrAfter()) return false;
+        if (!contract.isLessor(memberId)) return false;
+        return true;
+    }
+
+    private void hardDelete(Contract contract) {
+        contractPartyRepository.deleteAllByContract(contract);
+        contractFormDataRepository.deleteById(contract.getId());
+        contractRepository.delete(contract);
+    }
+
+    private void softDelete(Contract contract, Long memberId) {
+        if (contract.isLessor(memberId)) {
+            contract.deleteByLessor();
+        } else {
+            contract.deleteByLessee();
+        }
     }
 
     private Contract resolveContract(ContractBaseReqDto dto, Member member, Long memberId) {

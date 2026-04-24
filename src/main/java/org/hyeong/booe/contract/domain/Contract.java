@@ -9,6 +9,7 @@ import org.hyeong.booe.global.entity.BaseEntity;
 import org.hyeong.booe.member.domain.Member;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -65,6 +66,12 @@ public class Contract extends BaseEntity {
 
     @Column(name = "modusign_document_id", length = 100)
     private String modusignDocumentId;
+
+    @Column(name = "lessor_deleted_at")
+    private LocalDateTime lessorDeletedAt;
+
+    @Column(name = "lessee_deleted_at")
+    private LocalDateTime lesseeDeletedAt;
 
     @Builder
     private Contract(Member member, String title, String address, ContractStatus status, ContractType type,
@@ -136,5 +143,33 @@ public class Contract extends BaseEntity {
 
     public void completeSigning() {
         this.status = ContractStatus.SIGNED;
+    }
+
+    public void deleteByLessor() {
+        this.lessorDeletedAt = LocalDateTime.now();
+    }
+
+    public void deleteByLessee() {
+        this.lesseeDeletedAt = LocalDateTime.now();
+    }
+
+    public boolean isDeletedByLessor() {
+        return this.lessorDeletedAt != null;
+    }
+
+    public boolean isDeletedByLessee() {
+        return this.lesseeDeletedAt != null;
+    }
+
+    public boolean isLessor(Long memberId) {
+        return this.member.getId().equals(memberId);
+    }
+
+    public boolean isLessee(Long memberId) {
+        return this.lesseeMember != null && this.lesseeMember.getId().equals(memberId);
+    }
+
+    public boolean isPaidOrAfter() {
+        return this.status.ordinal() >= ContractStatus.PAYMENT_COMPLETED.ordinal();
     }
 }

@@ -7,6 +7,7 @@ import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
+import org.hyeong.booe.contract.dto.res.ContractListResDto;
 import org.hyeong.booe.contract.dto.res.ContractResDto;
 import org.hyeong.booe.contract.dto.res.PropertyInfoResDto;
 import org.hyeong.booe.contract.service.ContractService;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -90,8 +92,19 @@ public class ContractPropertyController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping
+    public ResponseEntity<List<ContractListResDto>> getContracts(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(contractService.getContracts(userDetails.getMemberId()));
+    }
 
-
+    @DeleteMapping("/{contractId}")
+    public ResponseEntity<Void> deleteContract(
+            @PathVariable Long contractId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        contractService.deleteContract(contractId, userDetails.getMemberId());
+        return ResponseEntity.ok().build();
+    }
 
 
 //    @PostMapping("/test/land-ratio-service")
