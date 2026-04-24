@@ -1,4 +1,4 @@
-package org.hyeong.booe.payment.dto;
+package org.hyeong.booe.payment.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
@@ -7,12 +7,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TossPaymentConfirmResDto {
+public class TossPaymentCancelResDto {
 
     private String paymentKey;
     private String orderId;
     private String status;
     private Long totalAmount;
-    private String method;
-    private String approvedAt;
 }

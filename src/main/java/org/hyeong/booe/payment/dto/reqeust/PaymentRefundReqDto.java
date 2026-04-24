@@ -1,5 +1,4 @@
-package org.hyeong.booe.payment.dto;
-
+package org.hyeong.booe.payment.dto.reqeust;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,17 +7,11 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class PaymentConfirmReqDto {
+public class PaymentRefundReqDto {
 
     @NotNull
     private Long contractId;
 
     @NotBlank
-    private String paymentKey;
-
-    @NotBlank
-    private String orderId;
-
-    @NotNull
-    private Long amount;
+    private String cancelReason;
 }

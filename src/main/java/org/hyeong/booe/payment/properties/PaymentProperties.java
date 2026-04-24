@@ -11,4 +11,5 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "payment")
 public class PaymentProperties {
     private Long serviceFee;
+    private String orderName;
 }

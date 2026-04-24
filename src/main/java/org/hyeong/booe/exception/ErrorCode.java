@@ -77,7 +77,8 @@ public enum ErrorCode {
 
     // 외부 API 통신 관련
     PUBLIC_DATA_COMMUNICATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S010", "공공데이터 서버와의 통신 중 오류가 발생했습니다."),
-    DATA_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S011", "데이터 파싱 중 오류가 발생했습니다.");
+    DATA_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S011", "데이터 파싱 중 오류가 발생했습니다."),
+    EXTERNAL_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "S013", "외부 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.");
 
     private final HttpStatus httpStatus;
     private final String code;
