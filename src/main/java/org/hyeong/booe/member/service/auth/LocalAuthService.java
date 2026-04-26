@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.exception.*;
 import org.hyeong.booe.global.security.jwt.JwtProvider;
+import org.hyeong.booe.global.security.jwt.RefreshTokenRedisService;
 import org.hyeong.booe.global.security.jwt.TokenResDto;
 import org.hyeong.booe.member.domain.Member;
 import org.hyeong.booe.member.domain.MemberCredential;
@@ -35,6 +36,7 @@ public class LocalAuthService {
     private final MemberCodeGenerator memberCodeGenerator;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final RefreshTokenRedisService refreshTokenRedisService;
 
     @Transactional
     public LocalSignupResDto signup(LocalSignupRequestDto reqDto) {
@@ -51,6 +53,7 @@ public class LocalAuthService {
         Member member = credential.getMember();
         MemberProfile profile = findProfile(member);
         TokenResDto tokenResDto = generateToken(member);
+        refreshTokenRedisService.save(member.getMemberCode(), tokenResDto.getRefreshToken());
 
         return LocalLoginResDto.of(member, profile, tokenResDto);
     }

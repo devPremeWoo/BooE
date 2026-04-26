@@ -11,8 +11,9 @@ import org.hyeong.booe.member.dto.req.RefreshReqDto;
 import org.hyeong.booe.member.dto.res.LocalLoginResDto;
 import org.hyeong.booe.member.dto.res.LocalSignupResDto;
 import org.hyeong.booe.member.service.auth.LocalAuthService;
+import org.hyeong.booe.member.service.MemberService;
 import org.hyeong.booe.global.security.jwt.TokenResDto;
-import org.hyeong.booe.member.service.auth.TokenService;
+import org.hyeong.booe.global.security.jwt.TokenService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ public class AuthController {
 
     private final LocalAuthService localAuthService;
     private final TokenService tokenService;
+    private final MemberService memberService;
 
     @PostMapping("/signup")
     public ResponseEntity<LocalSignupResDto> signup(
@@ -52,5 +54,12 @@ public class AuthController {
             @RequestBody @Valid RefreshReqDto reqDto) {
         TokenResDto tokenResDto = tokenService.refresh(reqDto.getRefreshToken());
         return ResponseEntity.ok(tokenResDto);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        memberService.logout(userDetails.getUsername());
+        return ResponseEntity.ok().build();
     }
 }
