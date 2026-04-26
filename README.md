@@ -1,27 +1,125 @@
-# 🏠 부동산 이곳에서 (BooE) - Backend
+# BooE (부동산 이곳에서) - Backend
 
-부동산 정보를 쉽고 빠르게 조회할 수 있는 **부동산 이곳에서 (BooE)** 프로젝트의 백엔드 서버입니다.
+부동산 임대차 계약서 작성부터 결제, PDF 생성까지 모바일에서 처리할 수 있는 서비스의 백엔드 서버입니다.
 
-## 🛠 Tech Stack & Core Libraries
-- **Backend**: Spring Boot 3.x, Java 17
-- **Security**: Spring Security & JWT (Json Web Token)
-- **Database**: MySQL, Spring Data JPA
-- **Communication**: REST API (for Flutter Frontend)
+## Tech Stack
 
-## 🚀 Key Implementation Details
+| 분류 | 기술 |
+|------|------|
+| Framework | Spring Boot 3.x, Java 17 |
+| Security | Spring Security, JWT (Access + Refresh Token) |
+| Database | MySQL, Spring Data JPA |
+| Cache | Redis (토큰 관리, 결제 주문 임시 저장) |
+| Payment | TossPayments API (WebClient) |
+| PDF | Thymeleaf + OpenHTMLtoPDF |
+| Push | Firebase Cloud Messaging (FCM) |
+| External API | 공공데이터 포털 (건축물대장, 토지정보) |
+| Client | Flutter (REST API 통신) |
 
-### 1. Authentication & Security
-- **JWT 기반 인증 시스템**: Stateless한 서버 환경을 위해 JWT를 도입하여 로그인 및 권한 관리를 수행합니다.
-- **Spring Security**: 보안 필터 체인을 통해 리소스 접근 권한을 제어하며, 인증 로직을 커스텀하여 구현했습니다.
+## 핵심 기능
 
-### 2. Domain Modeling & Persistence
-- **JPA (Java Persistence API)**: 객체 지향적인 데이터 모델링을 위해 JPA를 사용하며, 복잡한 부동산 데이터를 효율적으로 매핑했습니다.
-- **부동산 데이터 구조화**:
-  - **토지**: 지목, 대지권 비율, 면적
-  - **건물**: 구조, 용도, 전용 면적 (표제부 API 연동)
+### 1. 인증/인가
+- JWT 기반 Stateless 인증 (AccessToken 1h / RefreshToken 7d)
+- RefreshToken Redis 저장 및 검증
+- 토큰 갱신 API (`POST /api/auth/refresh`)
+- 로그아웃 시 Redis 토큰 삭제
+- Spring Security 필터 체인 기반 권한 제어
 
-### 3. Advanced Exception Handling
-- **Global Exception Strategy**: 모든 예외를 중앙 집중식으로 관리합니다.
-- **Custom Error Codes**: 별도의 `Enum` 타입을 활용하여 에러 코드를 정의하고, 비즈니스 예외(예: `already_registered_member`)를 처리하기 위한 전용 예외 클래스를 운영합니다.
+### 2. 부동산 계약서
+- 임대차 계약서 생성/조회/삭제
+- 5단계 정보 입력 플로우 (물건정보 → 계약조건 → 특약사항 → 개인정보 → 서명)
+- 임대인/임차인 양방향 계약 참여
+- 소프트 삭제 (공유 계약서 당사자별 삭제 처리)
+- 계약서 상태 관리 (DRAFT → REVIEW_REQUESTED → PAYMENT_PENDING → PAYMENT_DONE → SIGNED)
 
-테스트
+### 3. 결제 (TossPayments)
+- 결제 주문 생성 → Redis 임시 저장 (15분 TTL)
+- 결제 승인 (금액 3중 검증: 클라이언트 요청 vs Redis vs Toss 응답)
+- 환불 처리
+- 결제 데이터 RDBMS 저장 (원본 JSON 응답 포함)
+
+### 4. PDF 계약서 생성
+- Thymeleaf 템플릿 기반 HTML 렌더링
+- OpenHTMLtoPDF로 PDF 변환
+- 로컬 저장 (NCP Object Storage 전환 예정)
+
+### 5. 부동산 공공데이터 조회
+- 건축물대장 표제부/전유부 정보 조회
+- 토지 정보 및 대지권 비율 조회
+- 외부 API 통신 (WebClient)
+
+### 6. 알림 (FCM)
+- 계약 단계별 푸시 알림 (정보입력 요청, 결제 완료, 환불 등)
+- 디바이스 토큰 관리
+
+### 7. 회원
+- 로컬 회원가입/로그인
+- 휴대폰 번호 인증
+- 프로필 조회/수정
+- 회원 탈퇴 (소프트 삭제 + Redis 토큰 삭제)
+
+## ERD (엔티티 연관관계)
+
+```
+Member (회원)
+├── 1:1  MemberCredential        (로그인 정보)
+├── 1:1  MemberProfile           (프로필)
+├── 1:N  MemberDevice            (FCM 디바이스 토큰)
+├── 1:N  userOauthConnection     (OAuth 연동)
+│         └── N:1  OauthProvider
+├── 1:N  Contract (as 임대인)
+├── 1:N  Contract (as 임차인)
+└── 1:N  Payment
+
+Contract (계약서)
+├── N:1  Member (임대인)
+├── N:1  Member (임차인)
+├── 1:1  ContractFormData        (계약서 입력 데이터 JSON)
+├── 1:N  ContractParty           (계약 당사자 정보)
+├── 1:N  ContractPaymentSchedule (납부 스케줄)
+└── 1:N  Payment
+
+Payment (결제)
+├── N:1  Contract
+└── N:1  Member (결제자)
+
+PhoneVerification (휴대폰 인증) - 독립
+```
+
+Redis:
+```
+refresh:{memberCode}     → refreshToken (TTL 7일)
+payment:order:{orderId}  → orderId + amount (TTL 15분)
+```
+
+## 패키지 구조
+
+```
+src/main/java/org/hyeong/booe/
+├── auth/              # OAuth 관련 (예정)
+├── common/            # 공통 응답, 코드
+├── contract/          # 계약서 도메인
+├── exception/         # 글로벌 예외 처리
+├── global/            # Security, JWT, Config
+├── member/            # 회원 도메인
+├── payment/           # 결제 도메인
+├── property/          # 부동산 정보 조회
+└── verification/      # 휴대폰 인증
+```
+
+## API 엔드포인트
+
+| Method | Path | 설명 |
+|--------|------|------|
+| POST | /api/auth/signup | 회원가입 |
+| POST | /api/auth/login | 로그인 |
+| POST | /api/auth/refresh | 토큰 갱신 |
+| POST | /api/auth/logout | 로그아웃 |
+| GET | /api/members/me | 내 정보 조회 |
+| PATCH | /api/members/me | 내 정보 수정 |
+| DELETE | /api/members/me | 회원 탈퇴 |
+| GET | /api/contracts | 계약서 목록 |
+| DELETE | /api/contracts/{id} | 계약서 삭제 |
+| POST | /payments/order | 결제 주문 생성 |
+| POST | /payments/confirm | 결제 승인 |
+| POST | /payments/refund | 환불 |
