@@ -14,6 +14,7 @@ import org.hyeong.booe.exception.ContractNotFoundException;
 import org.hyeong.booe.exception.MemberNotFoundException;
 import org.hyeong.booe.exception.PaymentAmountMismatchException;
 import org.hyeong.booe.exception.PaymentNotFoundException;
+import org.hyeong.booe.exception.PaymentOrderInvalidException;
 import org.hyeong.booe.global.fcm.FcmService;
 import org.hyeong.booe.member.repository.MemberRepository;
 import org.hyeong.booe.member.domain.Member;
@@ -74,13 +75,16 @@ public class PaymentService {
         Contract contract = findContract(dto.getContractId());
         Member member = findMember(memberId);
         validateLesseeAccess(contract, memberId);
+
+        PaymentOrderInfo orderInfo = validateOrder(dto);
         validateAmount(dto.getAmount());
 
         TossPaymentConfirmResDto response = requestTossConfirm(dto);
-        validateConfirmedAmount(response);
+        validateConfirmedOrder(response, orderInfo);
 
         savePayment(contract, member, response);
         contract.completePayment();
+        paymentOrderRedisService.delete(dto.getContractId());
 
         String pdfPath = generateAndStorePdf(contract);
         notifyPaymentCompleted(contract);
@@ -135,6 +139,22 @@ public class PaymentService {
             return objectMapper.readValue(formJson, ContractBaseReqDto.class);
         } catch (Exception e) {
             throw new RuntimeException("계약서 폼 데이터 파싱 실패", e);
+        }
+    }
+
+    private PaymentOrderInfo validateOrder(PaymentConfirmReqDto dto) {
+        PaymentOrderInfo orderInfo = paymentOrderRedisService.find(dto.getContractId());
+        if (orderInfo == null) throw new PaymentOrderInvalidException();
+        if (!orderInfo.getOrderId().equals(dto.getOrderId())) throw new PaymentOrderInvalidException();
+        return orderInfo;
+    }
+
+    private void validateConfirmedOrder(TossPaymentConfirmResDto response, PaymentOrderInfo orderInfo) {
+        if (!orderInfo.getOrderId().equals(response.getOrderId())) {
+            throw new PaymentOrderInvalidException();
+        }
+        if (!orderInfo.getAmount().equals(response.getTotalAmount())) {
+            throw new PaymentAmountMismatchException();
         }
     }
 

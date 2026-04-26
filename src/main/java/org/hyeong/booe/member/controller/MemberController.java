@@ -2,45 +2,39 @@ package org.hyeong.booe.member.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.hyeong.booe.common.ApiResponse;
-import org.hyeong.booe.common.code.SuccessCode;
-import org.hyeong.booe.member.dto.req.LocalLoginRequestDto;
-import org.hyeong.booe.member.dto.req.LocalSignupRequestDto;
-import org.hyeong.booe.member.dto.res.LocalLoginResDto;
-import org.hyeong.booe.member.dto.res.LocalSignupResDto;
-import org.hyeong.booe.member.service.LocalMemberServiceImpl;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.hyeong.booe.global.details.CustomUserDetails;
+import org.hyeong.booe.member.dto.req.MemberUpdateReqDto;
+import org.hyeong.booe.member.dto.res.MemberInfoResDto;
+import org.hyeong.booe.member.service.MemberService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/member")
+@RequestMapping("/api/members")
 public class MemberController {
 
-    private final LocalMemberServiceImpl memberService;
+    private final MemberService memberService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<LocalSignupResDto> signup(@RequestBody @Valid LocalSignupRequestDto requestDto) {
-
-        LocalSignupResDto result = memberService.signup(requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    @GetMapping("/me")
+    public ResponseEntity<MemberInfoResDto> getMyInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(memberService.getMyInfo(userDetails.getMemberId()));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid LocalLoginRequestDto reqDto) {
-        LocalLoginResDto resDto = memberService.login(reqDto);
+    @PatchMapping("/me")
+    public ResponseEntity<Void> updateMyInfo(
+            @RequestBody @Valid MemberUpdateReqDto reqDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        memberService.updateMyInfo(userDetails.getMemberId(), reqDto);
+        return ResponseEntity.ok().build();
+    }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", resDto.token().getAccessToken());
-
-        return ResponseEntity
-                .status(SuccessCode.LOGIN_SUCCESS.getHttpStatus())
-                .headers(headers)
-                .body(ApiResponse.success(SuccessCode.LOGIN_SUCCESS, resDto));
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdraw(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        memberService.withdraw(userDetails.getMemberId());
+        return ResponseEntity.ok().build();
     }
 }

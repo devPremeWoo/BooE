@@ -1,6 +1,5 @@
-package org.hyeong.booe.member.service;
+package org.hyeong.booe.member.service.auth;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.exception.*;
@@ -22,88 +21,84 @@ import org.hyeong.booe.verification.domain.PhoneVerification;
 import org.hyeong.booe.verification.repository.PhoneVerificationRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Transactional
-public class LocalMemberServiceImpl {
+public class LocalAuthService {
 
     private final MemberRepository memberRepository;
     private final MemberCredentialRepository memberCredentialRepository;
-    private final PhoneVerificationRepository phoneVerificationRepository;
     private final MemberProfileRepository memberProfileRepository;
+    private final PhoneVerificationRepository phoneVerificationRepository;
     private final MemberCodeGenerator memberCodeGenerator;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-
     @Transactional
     public LocalSignupResDto signup(LocalSignupRequestDto reqDto) {
-
         validatePhoneVerification(reqDto.getVerificationId(), reqDto.getPhoneNum());
         checkDuplicatePhoneNumber(reqDto.getPhoneNum(), reqDto);
-
         Member member = createAccount(reqDto);
-
         return new LocalSignupResDto(member);
     }
 
     public LocalLoginResDto login(LocalLoginRequestDto requestDto) {
+        MemberCredential credential = findCredential(requestDto.getLoginId());
+        validatePassword(requestDto.getPassword(), credential.getPassword());
 
-        MemberCredential credential = memberCredentialRepository.findByLoginId(requestDto.getLoginId())
-                .orElseThrow(MemberNotFoundException::new);
-
-        if (!passwordEncoder.matches(requestDto.getPassword(), credential.getPassword())) {
-            throw new InvalidPasswordException();
-        }
         Member member = credential.getMember();
-
-        MemberProfile profile = memberProfileRepository.findByMember(member)
-                .orElseThrow(ProfileNotFoundException::new);
-
+        MemberProfile profile = findProfile(member);
         TokenResDto tokenResDto = generateToken(member);
 
         return LocalLoginResDto.of(member, profile, tokenResDto);
     }
 
-    private TokenResDto generateToken(Member member) {
+    private MemberCredential findCredential(String loginId) {
+        return memberCredentialRepository.findByLoginId(loginId)
+                .orElseThrow(MemberNotFoundException::new);
+    }
 
+    private MemberProfile findProfile(Member member) {
+        return memberProfileRepository.findByMember(member)
+                .orElseThrow(ProfileNotFoundException::new);
+    }
+
+    private void validatePassword(String rawPassword, String encodedPassword) {
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
+            throw new InvalidPasswordException();
+        }
+    }
+
+    private TokenResDto generateToken(Member member) {
         String accessToken = jwtProvider.generateAccessToken(member.getMemberCode(), member.getRole());
         String refreshToken = jwtProvider.generateRefreshToken(member.getMemberCode());
-
         return new TokenResDto(accessToken, refreshToken);
     }
 
     private Member createAccount(LocalSignupRequestDto reqDto) {
-
         validateDuplicateLoginId(reqDto.getLoginId());
-        validatePassword(reqDto.getPassword(), reqDto.getPasswordConfirm());
+        validatePasswordConfirm(reqDto.getPassword(), reqDto.getPasswordConfirm());
 
         Member member = Member.builder()
                 .memberCode(memberCodeGenerator.generate()).build();
         memberRepository.save(member);
 
-        MemberProfile memberProfile = reqDto.toMemberProfile(member);
-        memberProfileRepository.save(memberProfile);
-
+        memberProfileRepository.save(reqDto.toMemberProfile(member));
         String encodedPassword = passwordEncoder.encode(reqDto.getPassword());
-
-        MemberCredential memberCredential = reqDto.toMemberCredential(member, encodedPassword);
-        memberCredentialRepository.save(memberCredential);
+        memberCredentialRepository.save(reqDto.toMemberCredential(member, encodedPassword));
 
         return member;
     }
 
-
-    // 👇 private 분리
     private void validateDuplicateLoginId(String loginId) {
         if (memberCredentialRepository.existsByLoginId(loginId)) {
             throw new DuplicateLoginIdException();
         }
     }
 
-    private void validatePassword(String password, String confirm) {
+    private void validatePasswordConfirm(String password, String confirm) {
         if (!password.equals(confirm)) {
             throw new PasswordMismatchException();
         }
@@ -112,18 +107,11 @@ public class LocalMemberServiceImpl {
     private void validatePhoneVerification(Long verificationId, String phoneNum) {
         PhoneVerification verification = phoneVerificationRepository.findById(verificationId)
                 .orElseThrow(PhoneVerificationNotFoundException::new);
-
-        if (!verification.isVerified()) {
-            throw new VerificationNotCompletedException();
-        }
-
-        if (!verification.isSamePhoneNumber(phoneNum)) {
-            throw new VerificationPhoneMismatchException();
-        }
+        if (!verification.isVerified()) throw new VerificationNotCompletedException();
+        if (!verification.isSamePhoneNumber(phoneNum)) throw new VerificationPhoneMismatchException();
     }
 
     private void checkDuplicatePhoneNumber(String phoneNum, LocalSignupRequestDto dto) {
-
         memberProfileRepository.findByPhoneNumberAndMemberStatus(phoneNum, MemberStatus.ACTIVE)
                 .ifPresent(existingProfile -> {
                     if (isSamePerson(existingProfile, dto)) {
@@ -133,12 +121,10 @@ public class LocalMemberServiceImpl {
                             existingProfile.getMember().getId());
                     existingProfile.clearPhoneNumber();
                 });
-
     }
 
-
     private boolean isSamePerson(MemberProfile profile, LocalSignupRequestDto dto) {
-        return profile.getName().equals(dto.getName()) &&
-                profile.getBirthDate().equals(dto.getBirthDate());
+        return profile.getName().equals(dto.getName())
+                && profile.getBirthDate().equals(dto.getBirthDate());
     }
 }

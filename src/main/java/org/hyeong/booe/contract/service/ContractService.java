@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.contract.domain.Contract;
 import org.hyeong.booe.contract.domain.ContractFormData;
 import org.hyeong.booe.contract.domain.ContractParty;
+import org.hyeong.booe.contract.domain.type.ContractStatus;
 import org.hyeong.booe.contract.domain.type.PartyRole;
 import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
@@ -88,7 +89,7 @@ public class ContractService {
                 .map(ContractFormData::getFormJson)
                 .orElse(null);
 
-        return ContractResDto.of(contract, formJson);
+        return ContractResDto.of(contract, formJson, memberId);
     }
 
     // 임차인 정보 입력 완료
@@ -159,9 +160,8 @@ public class ContractService {
     }
 
     private boolean shouldHardDelete(Contract contract, Long memberId) {
-        if (contract.isPaidOrAfter()) return false;
         if (!contract.isLessor(memberId)) return false;
-        return true;
+        return contract.getStatus() == ContractStatus.DRAFT;
     }
 
     private void hardDelete(Contract contract) {

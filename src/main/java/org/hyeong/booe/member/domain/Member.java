@@ -41,6 +41,10 @@ public class Member extends BaseEntity {
         this.memberCode = memberCode;
     }
 
+    public void withdraw() {
+        this.status = MemberStatus.DELETED;
+    }
+
 //    private static String generateMemberCode() {
 //        return "booe_" + UUID.randomUUID()
 //                .toString()

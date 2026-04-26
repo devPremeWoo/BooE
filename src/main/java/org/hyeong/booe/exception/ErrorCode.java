@@ -29,6 +29,7 @@ public enum ErrorCode {
 
 
     // --- 401 UNAUTHORIZED (권한/비밀번호 오류) ---
+    INVALID_TOKEN(UNAUTHORIZED, "A010", "유효하지 않은 토큰입니다."),
     INVALID_PASSWORD(UNAUTHORIZED, "A001", "비밀번호가 올바르지 않습니다."),
     PASSWORD_MISMATCH(BAD_REQUEST, "A002", "비밀번호 확인이 일치하지 않습니다."),
     LOGIN_ID_NOT_FOUND(UNAUTHORIZED, "A003", "존재하지 않는 아이디입니다."),
@@ -63,6 +64,7 @@ public enum ErrorCode {
     // --- 결제 관련 ---
     PAYMENT_AMOUNT_MISMATCH(BAD_REQUEST, "P100", "결제 금액이 계약 금액과 일치하지 않습니다."),
     PAYMENT_CONFIRM_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "P101", "토스페이먼츠 결제 승인에 실패했습니다."),
+    PAYMENT_ORDER_INVALID(BAD_REQUEST, "P099", "유효하지 않은 주문 정보입니다. 다시 결제를 시도해주세요."),
     PAYMENT_NOT_FOUND(NOT_FOUND, "P102", "결제 정보를 찾을 수 없습니다."),
     PAYMENT_REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "P103", "토스페이먼츠 환불 처리에 실패했습니다."),
 
