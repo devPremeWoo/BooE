@@ -73,6 +73,7 @@ public enum ErrorCode {
     SAVING_MEMBER_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "S002", "회원 저장 중 오류가 발생했습니다."),
     MEMBER_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S003", "회원 식별 코드 생성에 실패했습니다."),
     JSON_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S012", "데이터를 JSON으로 변환하거나 파싱하는 중 오류가 발생했습니다."),
+    CRYPTO_OPERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S014", "암호화 연산 중 오류가 발생했습니다."),
     CONTRACT_SAVE_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "S020", "계약 정보 저장 중 알 수 없는 오류가 발생했습니다."),
 
 

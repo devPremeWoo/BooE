@@ -57,12 +57,4 @@ public class MemberCredential {
         this.passwordEncoder = PasswordEncoderType.BCRYPT;
         this.status = CredentialStatus.ACTIVE;
     }
-
-//    public static MemberCredential create(
-//            Member member,
-//            String loginId,
-//            String encodedPassword
-//    ) {
-//        return new MemberCredential(member, loginId, encodedPassword);
-//    }
 }
