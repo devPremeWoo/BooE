@@ -1,4 +1,4 @@
-package org.hyeong.booe.member.dto.res;
+package org.hyeong.booe.auth.local.dto.res;
 
 import org.hyeong.booe.global.security.jwt.TokenResDto;
 import org.hyeong.booe.member.domain.Member;

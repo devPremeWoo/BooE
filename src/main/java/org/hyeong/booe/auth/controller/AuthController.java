@@ -1,20 +1,21 @@
-package org.hyeong.booe.member.controller;
+package org.hyeong.booe.auth.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.hyeong.booe.auth.dto.req.RefreshReqDto;
+import org.hyeong.booe.auth.local.dto.req.LocalLoginRequestDto;
+import org.hyeong.booe.auth.local.dto.req.LocalSignupRequestDto;
+import org.hyeong.booe.auth.local.dto.res.LocalLoginResDto;
+import org.hyeong.booe.auth.local.dto.res.LocalSignupResDto;
+import org.hyeong.booe.auth.local.service.LocalAuthService;
+import org.hyeong.booe.auth.oauth.dto.KakaoReqDto;
+import org.hyeong.booe.auth.oauth.dto.OauthAuthResDto;
+import org.hyeong.booe.auth.oauth.service.KakaoAuthService;
 import org.hyeong.booe.common.ApiResponse;
 import org.hyeong.booe.common.code.SuccessCode;
 import org.hyeong.booe.global.details.CustomUserDetails;
-import org.hyeong.booe.member.dto.req.LocalLoginRequestDto;
-import org.hyeong.booe.member.dto.req.LocalSignupRequestDto;
-import org.hyeong.booe.member.dto.req.RefreshReqDto;
-import org.hyeong.booe.member.dto.res.LocalLoginResDto;
-import org.hyeong.booe.member.dto.res.LocalSignupResDto;
-import org.hyeong.booe.member.service.auth.LocalAuthService;
-import org.hyeong.booe.member.service.MemberService;
 import org.hyeong.booe.global.security.jwt.TokenResDto;
 import org.hyeong.booe.global.security.jwt.TokenService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,8 +30,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final LocalAuthService localAuthService;
+    private final KakaoAuthService kakaoAuthService;
     private final TokenService tokenService;
-    private final MemberService memberService;
 
     @PostMapping("/signup")
     public ResponseEntity<LocalSignupResDto> signup(
@@ -59,7 +60,13 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        memberService.logout(userDetails.getUsername());
+        tokenService.logout(userDetails.getUsername());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/kakao")
+    public ResponseEntity<OauthAuthResDto> kakaoOAuth(@RequestBody @Valid KakaoReqDto reqDto) {
+        OauthAuthResDto result = kakaoAuthService.kakaoLogin(reqDto.getAccessToken());
+        return ResponseEntity.ok(result);
     }
 }

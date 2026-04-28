@@ -1,4 +1,4 @@
-package org.hyeong.booe.member.dto.res;
+package org.hyeong.booe.auth.local.dto.res;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

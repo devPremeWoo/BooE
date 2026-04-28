@@ -48,6 +48,14 @@ public class WebClientConfig {
     }
 
     @Bean
+    public WebClient kakaoWebClient() {
+        return WebClient.builder()
+                .baseUrl("https://kapi.kakao.com")
+                .clientConnector(new ReactorClientHttpConnector(createHttpClient(5000)))
+                .build();
+    }
+
+    @Bean
     public WebClient tossPaymentWebClient() {
         String encodedKey = Base64.getEncoder()
                 .encodeToString((tossPaymentProperties.getSecretKey() + ":").getBytes(StandardCharsets.UTF_8));

@@ -1,4 +1,4 @@
-package org.hyeong.booe.member.dto.req;
+package org.hyeong.booe.auth.local.dto.req;
 
 import jakarta.validation.constraints.*;
 import lombok.Getter;

@@ -39,4 +39,4 @@ out/
 
 # .gitignore 파일 내용 예시
 src/main/resources/application.yml
-src/main/resources/booe-5553a-firebase-adminsdk-fbsvc-a05b2e82e9.json
+src/main/resources/firebase-service-account.json

@@ -43,10 +43,6 @@ public class MemberService {
         refreshTokenRedisService.delete(member.getMemberCode());
     }
 
-    public void logout(String memberCode) {
-        refreshTokenRedisService.delete(memberCode);
-    }
-
     private Member findMember(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);

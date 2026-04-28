@@ -1,7 +1,11 @@
-package org.hyeong.booe.member.service.auth;
+package org.hyeong.booe.auth.local.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hyeong.booe.auth.local.dto.req.LocalLoginRequestDto;
+import org.hyeong.booe.auth.local.dto.req.LocalSignupRequestDto;
+import org.hyeong.booe.auth.local.dto.res.LocalLoginResDto;
+import org.hyeong.booe.auth.local.dto.res.LocalSignupResDto;
 import org.hyeong.booe.exception.*;
 import org.hyeong.booe.global.security.jwt.JwtProvider;
 import org.hyeong.booe.global.security.jwt.RefreshTokenRedisService;
@@ -10,10 +14,6 @@ import org.hyeong.booe.member.domain.Member;
 import org.hyeong.booe.member.domain.MemberCredential;
 import org.hyeong.booe.member.domain.MemberProfile;
 import org.hyeong.booe.member.domain.type.MemberStatus;
-import org.hyeong.booe.member.dto.req.LocalLoginRequestDto;
-import org.hyeong.booe.member.dto.req.LocalSignupRequestDto;
-import org.hyeong.booe.member.dto.res.LocalLoginResDto;
-import org.hyeong.booe.member.dto.res.LocalSignupResDto;
 import org.hyeong.booe.member.repository.MemberCredentialRepository;
 import org.hyeong.booe.member.repository.MemberProfileRepository;
 import org.hyeong.booe.member.repository.MemberRepository;

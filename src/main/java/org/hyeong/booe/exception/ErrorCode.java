@@ -30,6 +30,7 @@ public enum ErrorCode {
 
     // --- 401 UNAUTHORIZED (권한/비밀번호 오류) ---
     INVALID_TOKEN(UNAUTHORIZED, "A010", "유효하지 않은 토큰입니다."),
+    OAUTH_USER_INFO_FETCH_FAILED(UNAUTHORIZED, "O001", "OAuth 사용자 정보 조회에 실패했습니다."),
     INVALID_PASSWORD(UNAUTHORIZED, "A001", "비밀번호가 올바르지 않습니다."),
     PASSWORD_MISMATCH(BAD_REQUEST, "A002", "비밀번호 확인이 일치하지 않습니다."),
     LOGIN_ID_NOT_FOUND(UNAUTHORIZED, "A003", "존재하지 않는 아이디입니다."),

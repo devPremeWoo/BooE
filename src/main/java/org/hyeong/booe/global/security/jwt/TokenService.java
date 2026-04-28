@@ -32,6 +32,10 @@ public class TokenService {
         return new TokenResDto(accessToken, refreshToken);
     }
 
+    public void logout(String memberCode) {
+        refreshTokenRedisService.delete(memberCode);
+    }
+
     private void validateStoredToken(String memberCode, String refreshToken) {
         String stored = refreshTokenRedisService.find(memberCode);
         if (stored == null || !stored.equals(refreshToken)) {

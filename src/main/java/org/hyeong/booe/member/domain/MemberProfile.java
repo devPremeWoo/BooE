@@ -42,9 +42,6 @@ public class MemberProfile extends BaseEntity {
     @Column(name = "birth")
     private LocalDate birthDate;
 
-    @Column(name = "gender")
-    private String gender;
-
     private MemberProfile(Member member) {
         this.member = member;
         this.phoneVerified = false;
@@ -77,13 +74,12 @@ public class MemberProfile extends BaseEntity {
     }
 
     @Builder
-    private MemberProfile(Member member, String email, String name, String phoneNumber, LocalDate birth, String gender) {
+    private MemberProfile(Member member, String email, String name, String phoneNumber, LocalDate birth) {
         this.member = member;
         this.email = email;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.phoneVerified = true;
         this.birthDate = birth;
-        //this.gender = gender;
     }
 }

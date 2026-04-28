@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hyeong.booe.global.entity.BaseEntity;
+import org.hyeong.booe.member.domain.type.OauthProviderType;
 
 import java.time.LocalDateTime;
 
@@ -11,12 +12,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Table(
-        name = "user_oauth_connection",
+        name = "member_oauth_connection",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"provider_id", "provider_user_id"})
+                @UniqueConstraint(columnNames = {"provider_type", "provider_user_id"})
         }
 )
-public class userOauthConnection extends BaseEntity {
+public class MemberOauthConnection extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,9 +27,9 @@ public class userOauthConnection extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @ManyToOne
-    @JoinColumn(name = "provider_id", nullable = false)
-    private OauthProvider oauthProvider;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider_type", nullable = false, length = 20)
+    private OauthProviderType providerType;
 
     @Column(name = "provider_user_id", nullable = false)
     private String providerUserId; // 소셜 서비스로부터 제공받은 사용자의 고유 키

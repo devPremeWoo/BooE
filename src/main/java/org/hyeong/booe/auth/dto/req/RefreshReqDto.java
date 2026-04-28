@@ -1,4 +1,4 @@
-package org.hyeong.booe.member.dto.req;
+package org.hyeong.booe.auth.dto.req;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
