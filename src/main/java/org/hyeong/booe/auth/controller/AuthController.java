@@ -10,7 +10,10 @@ import org.hyeong.booe.auth.local.dto.res.LocalSignupResDto;
 import org.hyeong.booe.auth.local.service.LocalAuthService;
 import org.hyeong.booe.auth.oauth.dto.KakaoReqDto;
 import org.hyeong.booe.auth.oauth.dto.OauthAuthResDto;
+import org.hyeong.booe.auth.oauth.dto.OauthSignupReqDto;
+import org.hyeong.booe.auth.oauth.dto.OauthSignupResDto;
 import org.hyeong.booe.auth.oauth.service.KakaoAuthService;
+import org.hyeong.booe.auth.oauth.service.OauthSignupService;
 import org.hyeong.booe.common.ApiResponse;
 import org.hyeong.booe.common.code.SuccessCode;
 import org.hyeong.booe.global.details.CustomUserDetails;
@@ -31,6 +34,7 @@ public class AuthController {
 
     private final LocalAuthService localAuthService;
     private final KakaoAuthService kakaoAuthService;
+    private final OauthSignupService oauthSignupService;
     private final TokenService tokenService;
 
     @PostMapping("/signup")
@@ -68,5 +72,12 @@ public class AuthController {
     public ResponseEntity<OauthAuthResDto> kakaoOAuth(@RequestBody @Valid KakaoReqDto reqDto) {
         OauthAuthResDto result = kakaoAuthService.kakaoLogin(reqDto.getAccessToken());
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/oauth/signup")
+    public ResponseEntity<OauthSignupResDto> oauthSignup(
+            @RequestBody @Valid OauthSignupReqDto reqDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(oauthSignupService.signup(reqDto));
     }
 }

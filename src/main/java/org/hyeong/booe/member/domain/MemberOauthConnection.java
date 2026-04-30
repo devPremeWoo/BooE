@@ -37,6 +37,17 @@ public class MemberOauthConnection extends BaseEntity {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    private MemberOauthConnection(Member member, OauthProviderType providerType, String providerUserId) {
+        this.member = member;
+        this.providerType = providerType;
+        this.providerUserId = providerUserId;
+        this.lastLoginAt = LocalDateTime.now();
+    }
+
+    public static MemberOauthConnection create(Member member, OauthProviderType providerType, String providerUserId) {
+        return new MemberOauthConnection(member, providerType, providerUserId);
+    }
+
     public void updateLastLogin() {
         this.lastLoginAt = LocalDateTime.now();
     }

@@ -24,6 +24,7 @@
 - 토큰 갱신 API (`POST /api/auth/refresh`)
 - 로그아웃 시 Redis 토큰 삭제
 - Spring Security 필터 체인 기반 권한 제어
+- 로컬 + 카카오 OAuth 2종 로그인 지원
 
 ### 2. 부동산 계약서
 - 임대차 계약서 생성/조회/삭제
@@ -53,8 +54,11 @@
 - 디바이스 토큰 관리
 
 ### 7. 회원
-- 로컬 회원가입/로그인
-- 휴대폰 번호 인증
+- 로컬 회원가입/로그인 (id/pw)
+- 카카오 OAuth 가입/로그인 (2단계: 카카오 토큰 검증 → 가입 정보 입력)
+  - 신규 사용자는 임시 가입 토큰(Redis TTL 10분) 발급 후 추가 정보 입력으로 가입 완료
+  - 기존 사용자는 즉시 JWT 발급
+- 휴대폰 번호 인증 (NICE 본인인증 통합 예정)
 - 프로필 조회/수정
 - 회원 탈퇴 (소프트 삭제 + Redis 토큰 삭제)
 
@@ -62,11 +66,10 @@
 
 ```
 Member (회원)
-├── 1:1  MemberCredential        (로그인 정보)
+├── 1:1  MemberCredential        (로컬 로그인 정보, 소셜 가입 시 미생성)
 ├── 1:1  MemberProfile           (프로필)
 ├── 1:N  MemberDevice            (FCM 디바이스 토큰)
-├── 1:N  userOauthConnection     (OAuth 연동)
-│         └── N:1  OauthProvider
+├── 1:N  MemberOauthConnection   (OAuth 연동, providerType + providerUserId)
 ├── 1:N  Contract (as 임대인)
 ├── 1:N  Contract (as 임차인)
 └── 1:N  Payment
@@ -90,13 +93,16 @@ Redis:
 ```
 refresh:{memberCode}     → refreshToken (TTL 7일)
 payment:order:{orderId}  → orderId + amount (TTL 15분)
+oauth:signup:{token}     → providerType + providerUserId (TTL 10분)
 ```
 
 ## 패키지 구조
 
 ```
 src/main/java/org/hyeong/booe/
-├── auth/              # OAuth 관련 (예정)
+├── auth/              # 인증 (로컬, OAuth)
+│   ├── local/         # 로컬 회원가입/로그인
+│   └── oauth/         # 카카오 OAuth (client, service, dto)
 ├── common/            # 공통 응답, 코드
 ├── contract/          # 계약서 도메인
 ├── exception/         # 글로벌 예외 처리
@@ -111,8 +117,10 @@ src/main/java/org/hyeong/booe/
 
 | Method | Path | 설명 |
 |--------|------|------|
-| POST | /api/auth/signup | 회원가입 |
-| POST | /api/auth/login | 로그인 |
+| POST | /api/auth/signup | 로컬 회원가입 |
+| POST | /api/auth/login | 로컬 로그인 |
+| POST | /api/auth/kakao | 카카오 토큰 검증 (기존 회원→JWT, 신규→signupToken) |
+| POST | /api/auth/oauth/signup | 소셜 가입 완료 (signupToken + 사용자 입력) |
 | POST | /api/auth/refresh | 토큰 갱신 |
 | POST | /api/auth/logout | 로그아웃 |
 | GET | /api/members/me | 내 정보 조회 |
