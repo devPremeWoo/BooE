@@ -17,7 +17,7 @@ import org.hyeong.booe.member.domain.type.MemberStatus;
 import org.hyeong.booe.member.repository.MemberCredentialRepository;
 import org.hyeong.booe.member.repository.MemberProfileRepository;
 import org.hyeong.booe.member.repository.MemberRepository;
-import org.hyeong.booe.member.util.MemberCodeGenerator;
+import org.hyeong.booe.member.service.util.MemberCodeGenerator;
 import org.hyeong.booe.verification.domain.PhoneVerification;
 import org.hyeong.booe.verification.repository.PhoneVerificationRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;

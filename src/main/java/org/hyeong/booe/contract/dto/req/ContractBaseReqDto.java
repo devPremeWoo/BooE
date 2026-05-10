@@ -23,9 +23,6 @@ public class ContractBaseReqDto {
 
     private Long contractId;  // null: 신규 생성 / non-null: 기존 계약 수정
 
-    @NotBlank(groups = {TempSave.class, ReviewRequest.class, LesseeSubmit.class})
-    private String title;
-
     @NotNull(groups = {TempSave.class, ReviewRequest.class, LesseeSubmit.class})
     @Valid
     private AddressInfo addressInfo;

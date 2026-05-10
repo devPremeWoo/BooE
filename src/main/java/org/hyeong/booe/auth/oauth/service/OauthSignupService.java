@@ -15,7 +15,7 @@ import org.hyeong.booe.member.domain.MemberProfile;
 import org.hyeong.booe.member.repository.MemberOauthConnectionRepository;
 import org.hyeong.booe.member.repository.MemberProfileRepository;
 import org.hyeong.booe.member.repository.MemberRepository;
-import org.hyeong.booe.member.util.MemberCodeGenerator;
+import org.hyeong.booe.member.service.util.MemberCodeGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

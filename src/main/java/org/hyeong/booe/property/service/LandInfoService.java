@@ -11,8 +11,9 @@ import org.hyeong.booe.property.dto.response.LdaregItem;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -21,17 +22,37 @@ public class LandInfoService {
 
     private final LandApiClient landApiClient;
     private final LandRatioApiClient landRatioApiClient;
-
+    private final PropertyCacheService cache;
+    private final InFlightRequestRegistry inflight;
 
     public Mono<LandResDto> getLandInfo(PropertyInfoReqDto reqDto) {
-        return landApiClient.fetchLandAttributes(reqDto);
+        String pnu = reqDto.getPnu();
+
+        LandResDto cached = cache.findLandInfo(pnu);
+        if (cached != null) {
+            log.debug("[LandInfo] cache HIT - pnu={}", pnu);
+            return Mono.just(cached);
+        }
+
+        log.debug("[LandInfo] cache MISS - pnu={}", pnu);
+        return inflight.dedupe("land:" + pnu, () -> landApiClient.fetchLandAttributes(reqDto)
+                .doOnNext(result -> cache.cacheLandInfo(pnu, result)));
     }
 
     public Mono<LandRatioDto> getLandRatioInfo(PropertyInfoReqDto reqDto) {
+        String pnu = reqDto.getPnu();
 
-        return landRatioApiClient.fetchAllPages(reqDto.getPnu())
+        LandRatioDto cached = cache.findLandRatio(pnu);
+        if (cached != null) {
+            log.debug("[LandRatio] cache HIT - pnu={}", pnu);
+            return Mono.just(cached);
+        }
+
+        log.debug("[LandRatio] cache MISS - pnu={}", pnu);
+        return inflight.dedupe("land-ratio:" + pnu, () -> landRatioApiClient.fetchAllPages(pnu)
                 .map(this::groupItems)
-                .map(this::toLandRatioDto);
+                .map(this::toLandRatioDto)
+                .doOnNext(result -> cache.cacheLandRatio(pnu, result)));
     }
 
     private LandRatioDto toLandRatioDto(
@@ -110,7 +131,7 @@ public class LandInfoService {
         try {
             return Integer.compare(Integer.parseInt(a), Integer.parseInt(b));
         } catch (NumberFormatException e) {
-            return a.compareTo(b); // 숫자 아닌 경우는 문자열 정렬
+            return a.compareTo(b);
         }
     }
 }

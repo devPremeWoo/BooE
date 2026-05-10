@@ -1,4 +1,4 @@
-package org.hyeong.booe.member.util;
+package org.hyeong.booe.member.service.util;
 
 import org.hyeong.booe.exception.MemberCodeGenerationException;
 import org.springframework.stereotype.Component;

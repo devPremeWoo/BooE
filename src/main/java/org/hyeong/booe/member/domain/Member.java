@@ -23,7 +23,8 @@ public class Member extends BaseEntity {
     @Column(name = "role", nullable = false, length = 10)
     private Role role;
 
-    @Column(name = "status") // 서비스에서 계정주의 상태
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20) // 서비스에서 계정주의 상태
     private MemberStatus status;
 
     @Column(name = "member_code", nullable = false, unique = true, updatable = false)

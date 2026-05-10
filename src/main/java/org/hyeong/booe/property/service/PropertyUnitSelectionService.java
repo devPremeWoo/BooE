@@ -18,11 +18,21 @@ import java.util.*;
 public class PropertyUnitSelectionService {
 
     private final BldRgstApiClient apiClient;
+    private final PropertyCacheService cache;
+    private final InFlightRequestRegistry inflight;
 
     public Mono<BuildingUnitResDto> getBuildingInfo(BuildingInfoReqDto queryDto) {
-        return apiClient.fetchAllAreaItems(queryDto)
+        String key = queryDto.toKey();
+
+        BuildingUnitResDto cached = cache.findBuildingInfo(key);
+        if (cached != null) {
+            log.debug("[BuildingInfo] cache HIT - key={}", key);
+            return Mono.just(cached);
+        }
+
+        log.debug("[BuildingInfo] cache MISS - key={}", key);
+        return inflight.dedupe("building:" + key, () -> apiClient.fetchAllAreaItems(queryDto)
                 .doOnNext(items -> {
-                    // 리스트가 비어있지 않다면 첫 번째 아이템의 원본 값을 출력
                     if (items != null && !items.isEmpty()) {
                         BldRgstAreaItem first = items.get(0);
                         log.info("[DEBUG] 첫 번째 데이터 확인 - 동: {}, 층: {}, 호: {}, 면적: {}, 구분: {}",
@@ -33,7 +43,8 @@ public class PropertyUnitSelectionService {
                     }
                 })
                 .map(this::groupItem)
-                .map(this::toResponseDto);
+                .map(this::toResponseDto)
+                .doOnNext(result -> cache.cacheBuildingInfo(key, result)));
     }
 
     private Map<String, Map<String, Map<String, UnitDetail>>> groupItem(List<BldRgstAreaItem> items) {

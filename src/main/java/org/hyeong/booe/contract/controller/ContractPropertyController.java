@@ -51,10 +51,11 @@ public class ContractPropertyController {
     }
 
     @PostMapping("/property-info")
-    public Mono<ResponseEntity<PropertyInfoResDto>> getPropertyInfo(@RequestBody PropertyInfoReqDto reqDto) {
-
-        return propertyCompositeService.getCompositePropertyInfo(reqDto)
-                .map(ResponseEntity::ok);
+    public ResponseEntity<PropertyInfoResDto> getPropertyInfo(@RequestBody PropertyInfoReqDto reqDto) {
+        PropertyInfoResDto result = propertyCompositeService
+                .getCompositePropertyInfo(reqDto)
+                .block();
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/draft")

@@ -148,13 +148,13 @@ public class ContractService {
     }
 
     private List<Contract> filterNotDeletedByLessor(Member member) {
-        return contractRepository.findAllByMember(member).stream()
+        return contractRepository.findAllByMemberWithSchedules(member).stream()
                 .filter(c -> !c.isDeletedByLessor())
                 .toList();
     }
 
     private List<Contract> filterNotDeletedByLessee(Member member) {
-        return contractRepository.findAllByLesseeMember(member).stream()
+        return contractRepository.findAllByLesseeMemberWithSchedules(member).stream()
                 .filter(c -> !c.isDeletedByLessee())
                 .toList();
     }

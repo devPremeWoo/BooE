@@ -10,6 +10,8 @@ import org.hyeong.booe.member.domain.Member;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -28,9 +30,6 @@ public class Contract extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lessee_member_id")
     private Member lesseeMember;
-
-    @Column(name = "title", nullable = false)
-    private String title;
 
     @Column(name = "address", nullable = false)
     private String address;
@@ -73,11 +72,13 @@ public class Contract extends BaseEntity {
     @Column(name = "lessee_deleted_at")
     private LocalDateTime lesseeDeletedAt;
 
+    @OneToMany(mappedBy = "contract", fetch = FetchType.LAZY)
+    private List<ContractPaymentSchedule> paymentSchedules = new ArrayList<>();
+
     @Builder
-    private Contract(Member member, String title, String address, ContractStatus status, ContractType type,
+    private Contract(Member member, String address, ContractStatus status, ContractType type,
                      Long totalDeposit, Long monthlyRent, LocalDate startDate, LocalDate endDate, Integer termMonths) {
         this.member = member;
-        this.title = title;
         this.address = address;
         this.status = status;
         this.type = type;
@@ -91,7 +92,6 @@ public class Contract extends BaseEntity {
     public static Contract createContract(Member member, ContractBaseReqDto dto) {
         return Contract.builder()
                 .member(member)
-                .title(dto.getTitle())
                 .address(dto.getAddressInfo().getAddress())
                 .status(ContractStatus.DRAFT)
                 .type(ContractType.MONTHLY)
@@ -104,7 +104,6 @@ public class Contract extends BaseEntity {
     }
 
     public void update(ContractBaseReqDto dto) {
-        this.title = dto.getTitle();
         this.address = dto.getAddressInfo().getAddress();
         this.totalDeposit = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getDeposit() : null;
         this.monthlyRent = dto.getPaymentInfo() != null ? dto.getPaymentInfo().getMonthlyRent() : null;
