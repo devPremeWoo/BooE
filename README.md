@@ -9,7 +9,7 @@
 | Framework | Spring Boot 3.x, Java 17 |
 | Security | Spring Security, JWT (Access + Refresh Token) |
 | Database | MySQL, Spring Data JPA |
-| Cache | Redis (토큰 관리, 결제 주문 임시 저장) |
+| Cache | Redis (토큰 관리, 결제 주문 임시 저장, 공공데이터 응답 캐싱) |
 | Payment | TossPayments API (WebClient) |
 | PDF | Thymeleaf + OpenHTMLtoPDF |
 | Push | Firebase Cloud Messaging (FCM) |
@@ -47,7 +47,9 @@
 ### 5. 부동산 공공데이터 조회
 - 건축물대장 표제부/전유부 정보 조회
 - 토지 정보 및 대지권 비율 조회
-- 외부 API 통신 (WebClient)
+- 외부 API 통신 (WebClient, 비동기 논블로킹)
+- Redis 캐싱 (PNU 단위, TTL 7일)
+- 동일 PNU 동시 요청에 대한 single-flight (in-flight Mono 공유로 외부 API 중복 호출 방지)
 
 ### 6. 알림 (FCM)
 - 계약 단계별 푸시 알림 (정보입력 요청, 결제 완료, 환불 등)
@@ -61,6 +63,24 @@
 - 휴대폰 번호 인증 (NICE 본인인증 통합 예정)
 - 프로필 조회/수정
 - 회원 탈퇴 (소프트 삭제 + Redis 토큰 삭제)
+
+## 성능 개선 / 문제해결
+
+### 1. 계약서 목록 조회 N+1 해결
+- 문제: `Contract`-`ContractPaymentSchedule` 1:N 관계로, 목록 조회 시 계약 N건마다 스케줄 조회 쿼리가 추가 발생
+- 해결: `LEFT JOIN FETCH c.paymentSchedules`로 단일 쿼리 처리 (`ContractRepository.findAllBy*WithSchedules`)
+
+### 2. 외부 공공데이터 API 응답 캐싱
+- 문제: 같은 PNU에 대한 토지/건축물/대지권 정보 조회 시마다 외부 API 호출 (응답 지연 + 호출량 부담)
+- 해결: PNU 단위 Redis 캐싱 (TTL 7일)
+
+### 3. 동일 PNU 동시 요청 cache stampede 방지
+- 문제: 캐시 미스 상태에서 같은 PNU로 N개 동시 요청 시 외부 API가 N번 중복 호출됨
+- 해결: `InFlightRequestRegistry`에서 `ConcurrentHashMap` + `computeIfAbsent`로 진행 중인 `Mono`를 원자적으로 공유 (single-flight) → 외부 API 호출 1회로 축소, 나머지 요청은 같은 결과 구독
+
+### 4. `.block()`으로 인한 워커 스레드 점유 해소
+- 문제: 부동산 정보 조회 컨트롤러가 `Mono.block()`으로 외부 API 응답까지 톰캣 워커 스레드 점유 → 동시성 한계
+- 해결: 컨트롤러 반환 타입을 `Mono`로 변경해 Servlet async 위임. ASYNC dispatch에서 `SecurityContext`가 비어 권한 체크가 실패할 가능성을 차단하기 위해 `JwtAuthenticationFilter.shouldNotFilterAsyncDispatch()`를 `false`로 오버라이드하여 dispatch 재진입 시 토큰을 다시 검증
 
 ## ERD (엔티티 연관관계)
 
@@ -94,6 +114,9 @@ Redis:
 refresh:{memberCode}     → refreshToken (TTL 7일)
 payment:order:{orderId}  → orderId + amount (TTL 15분)
 oauth:signup:{token}     → providerType + providerUserId (TTL 10분)
+property:land:{pnu}        → 토지 정보 (TTL 7일)
+property:land-ratio:{pnu}  → 대지권 비율 (TTL 7일)
+property:building:{key}    → 건축물 동/호 정보 (TTL 7일)
 ```
 
 ## 패키지 구조
