@@ -111,4 +111,24 @@ public class BldRgstApiClient {
                 .map(Tuple2::getT2);
     }
 
+    /**
+     * 동시성·딜레이 튜닝용. retryWhen 없이 raw 측정.
+     */
+    public Mono<List<BldRgstAreaItem>> fetchAllAreaItemsForTuning(
+            BuildingInfoReqDto query, int concurrency, long delayMs) {
+
+        return fetchAreaPage(query, 1)
+                .flatMapMany(firstPage -> {
+                    int totalCount = firstPage.totalCount();
+                    int totalPages = (int) Math.ceil((double) totalCount / NUM_OF_ROWS);
+
+                    return Flux.range(1, totalPages)
+                            .delayElements(Duration.ofMillis(delayMs))
+                            .flatMap(pageNo -> fetchAreaPage(query, pageNo), concurrency)
+                            .timeout(Duration.ofSeconds(10))
+                            .flatMapIterable(AreaPageState::items);
+                })
+                .collectList();
+    }
+
 }

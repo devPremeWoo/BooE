@@ -77,9 +77,8 @@ public class PaymentService {
         validateLesseeAccess(contract, memberId);
 
         PaymentOrderInfo orderInfo = validateOrder(dto);
-        validateAmount(dto.getAmount());
 
-        TossPaymentConfirmResDto response = requestTossConfirm(dto);
+        TossPaymentConfirmResDto response = requestTossConfirm(dto, orderInfo);
         validateConfirmedOrder(response, orderInfo);
 
         savePayment(contract, member, response);
@@ -164,21 +163,9 @@ public class PaymentService {
         }
     }
 
-    private void validateAmount(Long requestAmount) {
-        if (!paymentProperties.getServiceFee().equals(requestAmount)) {
-            throw new PaymentAmountMismatchException();
-        }
-    }
-
-    private TossPaymentConfirmResDto requestTossConfirm(PaymentConfirmReqDto dto) {
+    private TossPaymentConfirmResDto requestTossConfirm(PaymentConfirmReqDto dto, PaymentOrderInfo orderInfo) {
         return tossPaymentApiClient.confirmPayment(
-                dto.getPaymentKey(), dto.getOrderId(), dto.getAmount());
-    }
-
-    private void validateConfirmedAmount(TossPaymentConfirmResDto response) {
-        if (!paymentProperties.getServiceFee().equals(response.getTotalAmount())) {
-            throw new PaymentAmountMismatchException();
-        }
+                dto.getPaymentKey(), orderInfo.getOrderId(), orderInfo.getAmount());
     }
 
     @Transactional
