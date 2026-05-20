@@ -11,6 +11,7 @@ import org.hyeong.booe.contract.service.ContractPdfService;
 import org.hyeong.booe.contract.service.ContractPdfStorageService;
 import org.hyeong.booe.exception.ContractAccessDeniedException;
 import org.hyeong.booe.exception.ContractNotFoundException;
+import org.hyeong.booe.exception.DuplicatePaymentConfirmException;
 import org.hyeong.booe.exception.MemberNotFoundException;
 import org.hyeong.booe.exception.PaymentAmountMismatchException;
 import org.hyeong.booe.exception.PaymentNotFoundException;
@@ -32,7 +33,6 @@ import org.hyeong.booe.payment.dto.response.TossPaymentConfirmResDto;
 import org.hyeong.booe.payment.properties.PaymentProperties;
 import org.hyeong.booe.payment.repository.PaymentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +64,7 @@ public class PaymentService {
         String orderId = orderIdGenerator.generate(contract.getId());
 
         PaymentOrderInfo orderInfo = new PaymentOrderInfo(orderId, paymentProperties.getServiceFee());
-        paymentOrderRedisService.save(contract.getId(), orderInfo);
+        paymentOrderRedisService.saveOrderInfo(contract.getId(), orderInfo);
 
         return new PaymentOrderResDto(orderId, paymentProperties.getServiceFee(), paymentProperties.getOrderName());
     }
@@ -77,6 +77,11 @@ public class PaymentService {
         validateLesseeAccess(contract, memberId);
 
         PaymentOrderInfo orderInfo = validateOrder(dto);
+
+        // 여기서 중복 요청인지 검증해야 할듯?
+        if (!paymentOrderRedisService.savePaymentConfirm(dto.getPaymentKey())) {
+            throw new DuplicatePaymentConfirmException();
+        }
 
         TossPaymentConfirmResDto response = requestTossConfirm(dto, orderInfo);
         validateConfirmedOrder(response, orderInfo);
@@ -142,7 +147,7 @@ public class PaymentService {
     }
 
     private PaymentOrderInfo validateOrder(PaymentConfirmReqDto dto) {
-        PaymentOrderInfo orderInfo = paymentOrderRedisService.find(dto.getContractId());
+        PaymentOrderInfo orderInfo = paymentOrderRedisService.findOrderInfo(dto.getContractId());
         if (orderInfo == null) throw new PaymentOrderInvalidException();
         if (!orderInfo.getOrderId().equals(dto.getOrderId())) throw new PaymentOrderInvalidException();
         return orderInfo;

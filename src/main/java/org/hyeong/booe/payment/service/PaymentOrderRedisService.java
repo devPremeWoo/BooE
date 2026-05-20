@@ -11,26 +11,35 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class PaymentOrderRedisService {
 
-    private static final String KEY_PREFIX = "payment:order:";
+    private static final String ORDER_KEY_PREFIX = "payment:order:";
     private static final long ORDER_TTL = 15;
+    private static final String CONFIRM_KEY_PREFIX = "payment:confirm:";
+    private static final long CONFIRM_TTL = 60;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void save(Long contractId, PaymentOrderInfo orderInfo) {
+    public void saveOrderInfo(Long contractId, PaymentOrderInfo orderInfo) {
         redisTemplate.opsForValue()
-                .set(buildKey(contractId), orderInfo, ORDER_TTL, TimeUnit.MINUTES);
+                .set(buildOrderKey(contractId), orderInfo, ORDER_TTL, TimeUnit.MINUTES);
     }
 
-    public PaymentOrderInfo find(Long contractId) {
+    public PaymentOrderInfo findOrderInfo(Long contractId) {
         return (PaymentOrderInfo) redisTemplate.opsForValue()
-                .get(buildKey(contractId));
+                .get(buildOrderKey(contractId));
+    }
+
+    public boolean savePaymentConfirm(String paymentKey) {
+        Boolean result = redisTemplate.opsForValue()
+                .setIfAbsent(buildConfirmKey(paymentKey), "PROCESSING",
+                CONFIRM_TTL, TimeUnit.SECONDS);
+
+        return Boolean.TRUE.equals(result);
     }
 
     public void delete(Long contractId) {
-        redisTemplate.delete(buildKey(contractId));
+        redisTemplate.delete(buildOrderKey(contractId));
     }
 
-    private String buildKey(Long contractId) {
-        return KEY_PREFIX + contractId;
-    }
+    private String buildOrderKey(Long contractId) {return ORDER_KEY_PREFIX + contractId;}
+    private String buildConfirmKey(String paymentKey) {return CONFIRM_KEY_PREFIX + paymentKey;}
 }

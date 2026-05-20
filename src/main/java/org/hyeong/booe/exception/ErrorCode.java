@@ -69,6 +69,7 @@ public enum ErrorCode {
     PAYMENT_ORDER_INVALID(BAD_REQUEST, "P099", "유효하지 않은 주문 정보입니다. 다시 결제를 시도해주세요."),
     PAYMENT_NOT_FOUND(NOT_FOUND, "P102", "결제 정보를 찾을 수 없습니다."),
     PAYMENT_REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "P103", "토스페이먼츠 환불 처리에 실패했습니다."),
+    PAYMENT_DUPLICATE_CONFIRM(CONFLICT, "P104", "이미 처리 중이거나 처리 완료된 결제 요청입니다."),
 
     // --- 500 INTERNAL SERVER ERROR ---
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S001", "서버 내부 오류가 발생했습니다."),

@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "payment")
+@Table(name = "payment", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_payment_key", columnNames = "payment_key")
+})
 public class Payment extends BaseEntity {
 
     @Id
