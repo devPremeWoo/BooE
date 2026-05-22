@@ -1,7 +1,8 @@
 package org.hyeong.booe.payment.domain.type;
 
 public enum PaymentStatus {
-    DONE,
+    PENDING,
+    APPROVE,
     CANCELED,
-    REFUNDED
+    FAILED
 }

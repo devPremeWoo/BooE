@@ -55,6 +55,9 @@ public class Payment extends BaseEntity {
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
+
     @Column(name = "raw_response", columnDefinition = "JSON")
     private String rawResponse;
 
@@ -62,7 +65,8 @@ public class Payment extends BaseEntity {
     private Payment(Contract contract, Member member, String paymentKey,
                     String orderId, Long amount, String method,
                     PaymentType type, PaymentStatus status,
-                    LocalDateTime approvedAt, String rawResponse) {
+                    LocalDateTime approvedAt, LocalDateTime canceledAt,
+                    String rawResponse) {
         this.contract = contract;
         this.member = member;
         this.paymentKey = paymentKey;
@@ -72,28 +76,38 @@ public class Payment extends BaseEntity {
         this.type = type;
         this.status = status;
         this.approvedAt = approvedAt;
+        this.canceledAt = canceledAt;
         this.rawResponse = rawResponse;
     }
 
     public static Payment createPayment(Contract contract, Member member,
                                         String paymentKey, String orderId,
-                                        Long amount, String method,
-                                        LocalDateTime approvedAt, String rawResponse) {
+                                        Long amount
+                                        ) {
         return Payment.builder()
                 .contract(contract)
                 .member(member)
                 .paymentKey(paymentKey)
                 .orderId(orderId)
                 .amount(amount)
-                .method(method)
                 .type(PaymentType.PAYMENT)
-                .status(PaymentStatus.DONE)
-                .approvedAt(approvedAt)
-                .rawResponse(rawResponse)
+                .status(PaymentStatus.PENDING)
                 .build();
     }
 
-    public void refund() {
-        this.status = PaymentStatus.REFUNDED;
+    public void approve(String method, LocalDateTime approvedAt, String rawResponse) {
+        this.status = PaymentStatus.APPROVE;
+        this.approvedAt = approvedAt;
+        this.rawResponse = rawResponse;
+        this.method = method;
+    }
+
+    public void cancel(LocalDateTime canceledAt) {
+        this.status = PaymentStatus.CANCELED;
+        this.canceledAt = canceledAt;
+    }
+
+    public void markFailed() {
+        this.status = PaymentStatus.FAILED;
     }
 }

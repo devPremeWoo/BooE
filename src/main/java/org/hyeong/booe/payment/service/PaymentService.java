@@ -23,6 +23,7 @@ import org.hyeong.booe.member.domain.MemberDevice;
 import org.hyeong.booe.member.repository.MemberDeviceRepository;
 import org.hyeong.booe.payment.api.TossPaymentApiClient;
 import org.hyeong.booe.payment.domain.Payment;
+import org.hyeong.booe.payment.domain.type.PaymentEventActor;
 import org.hyeong.booe.payment.domain.type.PaymentStatus;
 import org.hyeong.booe.payment.dto.PaymentOrderInfo;
 import org.hyeong.booe.payment.dto.reqeust.PaymentConfirmReqDto;
@@ -57,6 +58,7 @@ public class PaymentService {
     private final ObjectMapper objectMapper;
     private final OrderIdGenerator orderIdGenerator;
     private final PaymentOrderRedisService paymentOrderRedisService;
+    private final PaymentRecordService paymentRecordService;
 
     public PaymentOrderResDto createOrder(PaymentOrderReqDto dto, Long memberId) {
         Contract contract = findContract(dto.getContractId());
@@ -70,7 +72,6 @@ public class PaymentService {
     }
 
 
-    @Transactional
     public String confirmPayment(PaymentConfirmReqDto dto, Long memberId) {
         Contract contract = findContract(dto.getContractId());
         Member member = findMember(memberId);
@@ -78,21 +79,42 @@ public class PaymentService {
 
         PaymentOrderInfo orderInfo = validateOrder(dto);
 
-        // 여기서 중복 요청인지 검증해야 할듯?
         if (!paymentOrderRedisService.savePaymentConfirm(dto.getPaymentKey())) {
             throw new DuplicatePaymentConfirmException();
         }
 
-        TossPaymentConfirmResDto response = requestTossConfirm(dto, orderInfo);
-        validateConfirmedOrder(response, orderInfo);
-
-        savePayment(contract, member, response);
-        contract.completePayment();
-        paymentOrderRedisService.delete(dto.getContractId());
+        Payment payment = paymentRecordService.createPayment(contract, member, dto);
+        processTossPayment(payment.getId(), dto, orderInfo);
 
         String pdfPath = generateAndStorePdf(contract);
         notifyPaymentCompleted(contract);
         return pdfPath;
+    }
+
+    private void processTossPayment(Long paymentId, PaymentConfirmReqDto dto, PaymentOrderInfo orderInfo) {
+        try {
+            TossPaymentConfirmResDto response = requestTossConfirm(dto, orderInfo);
+            validateConfirmedOrder(response, orderInfo);
+            // db 승인 처리
+            paymentRecordService.approve(paymentId, dto.getContractId(), response, serializeToJson(response));
+        } catch (Exception e) {
+            compensateOrphan(paymentId, dto.getPaymentKey(), e);
+            throw e;
+        }
+    }
+
+    private void compensateOrphan(Long paymentId, String paymentKey, Exception cause) {
+        String reason = "post-confirm failure: " + cause.getMessage();
+        try {
+            tossPaymentApiClient.cancelPayment(paymentKey, reason);
+            paymentRecordService.cancel(paymentId, LocalDateTime.now(),
+                    PaymentEventActor.SYSTEM, reason);
+        } catch (Exception cancelEx) {
+            log.error("[Payment] orphan compensation failed - paymentId={}, paymentKey={}",
+                    paymentId, paymentKey, cancelEx);
+            paymentRecordService.markCancelFailed(paymentId,
+                    PaymentEventActor.SYSTEM, cancelEx.getMessage());
+        }
     }
 
     private Contract findContract(Long contractId) {
@@ -103,16 +125,6 @@ public class PaymentService {
     private Member findMember(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
-    }
-
-    private void savePayment(Contract contract, Member member, TossPaymentConfirmResDto response) {
-        paymentRepository.save(Payment.createPayment(
-                contract, member,
-                response.getPaymentKey(), response.getOrderId(),
-                response.getTotalAmount(), response.getMethod(),
-                LocalDateTime.parse(response.getApprovedAt().substring(0, 19)),
-                serializeToJson(response)
-        ));
     }
 
     private String serializeToJson(TossPaymentConfirmResDto response) {
@@ -181,13 +193,14 @@ public class PaymentService {
         Payment payment = findDonePayment(dto.getContractId());
         tossPaymentApiClient.cancelPayment(payment.getPaymentKey(), dto.getCancelReason());
 
-        payment.refund();
+        paymentRecordService.cancel(payment.getId(), LocalDateTime.now(),
+                PaymentEventActor.USER, dto.getCancelReason());
         contract.cancelPayment();
         notifyPaymentRefunded(contract);
     }
 
     private Payment findDonePayment(Long contractId) {
-        return paymentRepository.findByContractIdAndStatus(contractId, PaymentStatus.DONE)
+        return paymentRepository.findByContractIdAndStatus(contractId, PaymentStatus.APPROVE)
                 .orElseThrow(PaymentNotFoundException::new);
     }
 
