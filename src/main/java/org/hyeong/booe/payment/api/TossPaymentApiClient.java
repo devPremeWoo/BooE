@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.exception.PaymentConfirmFailedException;
 import org.hyeong.booe.exception.PaymentRefundFailedException;
+import org.hyeong.booe.payment.dto.response.PaymentStatusCheckResDto;
 import org.hyeong.booe.payment.dto.response.TossPaymentCancelResDto;
 import org.hyeong.booe.payment.dto.response.TossPaymentConfirmResDto;
 import org.springframework.stereotype.Component;
@@ -82,5 +83,33 @@ public class TossPaymentApiClient {
         if (response == null) {
             throw new PaymentRefundFailedException();
         }
+    }
+
+    public PaymentStatusCheckResDto getPaymentStatus(String paymentKey) {
+        PaymentStatusCheckResDto response = callStatusCheckApi(paymentKey);
+        if (response == null) {
+            return null;
+        }
+        logStatusCheckSuccess(response);
+        return response;
+    }
+
+    private PaymentStatusCheckResDto callStatusCheckApi(String paymentKey) {
+        try {
+            return tossPaymentWebClient.get()
+                    .uri("/v1/payments/{paymentKey}", paymentKey)
+                    .retrieve()
+                    .bodyToMono(PaymentStatusCheckResDto.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            log.error("[TossPayment] 결제 조회 실패 - paymentKey={}, status={}, body={}",
+                    paymentKey, e.getStatusCode(), e.getResponseBodyAsString());
+            return null;
+        }
+    }
+
+    private void logStatusCheckSuccess(PaymentStatusCheckResDto response) {
+        log.info("[TossPayment] 결제 조회 성공 - paymentKey={}, status={}",
+                response.getPaymentKey(), response.getStatus());
     }
 }

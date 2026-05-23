@@ -11,6 +11,7 @@ import org.hyeong.booe.payment.domain.PaymentEvent;
 import org.hyeong.booe.payment.domain.type.PaymentEventActor;
 import org.hyeong.booe.payment.domain.type.PaymentEventType;
 import org.hyeong.booe.payment.dto.reqeust.PaymentConfirmReqDto;
+import org.hyeong.booe.payment.dto.response.PaymentStatusCheckResDto;
 import org.hyeong.booe.payment.dto.response.TossPaymentConfirmResDto;
 import org.hyeong.booe.payment.repository.PaymentEventRepository;
 import org.hyeong.booe.payment.repository.PaymentRepository;
@@ -67,6 +68,38 @@ public class PaymentRecordService {
         Payment payment = findPayment(paymentId);
         payment.markFailed();
         recordEvent(payment, PaymentEventType.CANCEL_FAILED, actor, reason, null);
+    }
+
+    @Transactional
+    public void reconcileToApprove(Long paymentId, Long contractId,
+                                   PaymentStatusCheckResDto response, String rawResponse) {
+        Payment payment = findPayment(paymentId);
+        payment.approve(
+                response.getMethod(),
+                LocalDateTime.parse(response.getApprovedAt().substring(0, 19)),
+                rawResponse);
+
+        Contract contract = findContract(contractId);
+        contract.completePayment();
+
+        paymentOrderRedisService.delete(contractId);
+
+        recordEvent(payment, PaymentEventType.RECONCILED, PaymentEventActor.SCHEDULER,
+                "restored to APPROVE by reconciler", rawResponse);
+    }
+
+    @Transactional
+    public void reconcileToCancel(Long paymentId, LocalDateTime canceledAt, String reason) {
+        Payment payment = findPayment(paymentId);
+        payment.cancel(canceledAt);
+        recordEvent(payment, PaymentEventType.RECONCILED, PaymentEventActor.SCHEDULER, reason, null);
+    }
+
+    @Transactional
+    public void markAbandoned(Long paymentId, String reason) {
+        Payment payment = findPayment(paymentId);
+        payment.markFailed();
+        recordEvent(payment, PaymentEventType.ABANDONED, PaymentEventActor.SCHEDULER, reason, null);
     }
 
     private void recordEvent(Payment payment, PaymentEventType eventType,
