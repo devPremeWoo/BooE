@@ -24,8 +24,7 @@ public class ContractPdfStorageService {
             Path dir = Paths.get(storagePath);
             Files.createDirectories(dir);
 
-            String fileName = "contract-" + contractId + ".pdf";
-            Path filePath = dir.resolve(fileName);
+            Path filePath = dir.resolve(fileNameFor(contractId));
             Files.write(filePath, pdfBytes);
 
             log.info("[PDF] 저장 완료 - {}", filePath);
@@ -33,5 +32,17 @@ public class ContractPdfStorageService {
         } catch (IOException e) {
             throw new RuntimeException("PDF 저장 실패", e);
         }
+    }
+
+    /**
+     * 저장될(또는 곧 저장될) PDF의 결정적 경로를 반환.
+     * PDF 생성이 비동기로 분리된 뒤에도 응답 시점에 경로를 미리 알려주기 위함 — 파일은 곧 생성됨.
+     */
+    public String pathFor(Long contractId) {
+        return Paths.get(storagePath).resolve(fileNameFor(contractId)).toString();
+    }
+
+    private String fileNameFor(Long contractId) {
+        return "contract-" + contractId + ".pdf";
     }
 }

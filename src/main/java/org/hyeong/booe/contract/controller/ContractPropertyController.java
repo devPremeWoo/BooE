@@ -7,6 +7,7 @@ import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
 import org.hyeong.booe.contract.dto.req.DownPaymentConfirmReqDto;
 import org.hyeong.booe.contract.dto.req.PropertyInfoReqDto;
 import org.hyeong.booe.contract.dto.req.ReviewRequestDto;
+import org.hyeong.booe.contract.dto.req.UnitAreaReqDto;
 import org.hyeong.booe.contract.dto.res.ContractListResDto;
 import org.hyeong.booe.contract.dto.res.ContractResDto;
 import org.hyeong.booe.contract.dto.res.PropertyInfoResDto;
@@ -16,6 +17,7 @@ import org.hyeong.booe.property.dto.request.BuildingInfoReqDto;
 import org.hyeong.booe.property.dto.response.BuildingUnitResDto;
 import org.hyeong.booe.property.dto.response.LandRatioDto;
 import org.hyeong.booe.property.dto.response.LandResDto;
+import org.hyeong.booe.property.dto.response.UnitAreaResDto;
 import org.hyeong.booe.property.service.LandInfoService;
 import org.hyeong.booe.property.service.PropertyCompositeService;
 import org.hyeong.booe.property.service.PropertyUnitSelectionService;
@@ -53,6 +55,12 @@ public class ContractPropertyController {
     @PostMapping("/property-info")
     public Mono<PropertyInfoResDto> getPropertyInfo(@RequestBody PropertyInfoReqDto reqDto) {
         return propertyCompositeService.getCompositePropertyInfo(reqDto);
+    }
+
+    @PostMapping("/unit-area")
+    public Mono<UnitAreaResDto> getUnitArea(@RequestBody @Validated UnitAreaReqDto reqDto) {
+        BuildingInfoReqDto query = BuildingInfoReqDto.fromPnu(reqDto.getPnu());
+        return propertyUnitSelectionService.getUnitArea(query, reqDto.getDongNm(), reqDto.getHoNm());
     }
 
     @PostMapping("/draft")

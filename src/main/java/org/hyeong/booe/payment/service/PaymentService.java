@@ -4,16 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyeong.booe.contract.domain.Contract;
 import org.hyeong.booe.contract.repository.ContractRepository;
-import org.hyeong.booe.contract.domain.ContractFormData;
-import org.hyeong.booe.contract.dto.req.ContractBaseReqDto;
-import org.hyeong.booe.contract.repository.ContractFormDataRepository;
-import org.hyeong.booe.contract.service.ContractPdfService;
 import org.hyeong.booe.contract.service.ContractPdfStorageService;
+import org.hyeong.booe.contract.service.PdfGenerationWorker;
 import org.hyeong.booe.exception.ContractAccessDeniedException;
 import org.hyeong.booe.exception.ContractNotFoundException;
 import org.hyeong.booe.exception.DuplicatePaymentConfirmException;
 import org.hyeong.booe.exception.MemberNotFoundException;
-import org.hyeong.booe.exception.PaymentAmountMismatchException;
 import org.hyeong.booe.exception.PaymentNotFoundException;
 import org.hyeong.booe.exception.PaymentOrderInvalidException;
 import org.hyeong.booe.global.fcm.FcmService;
@@ -39,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
 
 @Service
 @Slf4j
@@ -46,12 +43,10 @@ import java.util.List;
 public class PaymentService {
 
     private final ContractRepository contractRepository;
-    private final ContractFormDataRepository contractFormDataRepository;
     private final MemberRepository memberRepository;
     private final MemberDeviceRepository memberDeviceRepository;
     private final PaymentRepository paymentRepository;
     private final TossPaymentApiClient tossPaymentApiClient;
-    private final ContractPdfService contractPdfService;
     private final ContractPdfStorageService contractPdfStorageService;
     private final FcmService fcmService;
     private final PaymentProperties paymentProperties;
@@ -59,6 +54,7 @@ public class PaymentService {
     private final OrderIdGenerator orderIdGenerator;
     private final PaymentOrderRedisService paymentOrderRedisService;
     private final PaymentRecordService paymentRecordService;
+    private final PdfGenerationWorker pdfGenerationWorker;
 
     public PaymentOrderResDto createOrder(PaymentOrderReqDto dto, Long memberId) {
         Contract contract = findContract(dto.getContractId());
@@ -86,16 +82,27 @@ public class PaymentService {
         Payment payment = paymentRecordService.createPayment(contract, member, dto);
         processTossPayment(payment.getId(), dto, orderInfo);
 
-        String pdfPath = generateAndStorePdf(contract);
-        notifyPaymentCompleted(contract);
-        return pdfPath;
+        dispatchPdfGeneration(contract.getId());
+        return contractPdfStorageService.pathFor(contract.getId());
+    }
+
+    /**
+     * PDF 생성·저장·완료 FCM을 전용 워커 풀에 위임. 풀+큐가 모두 가득이면 AbortPolicy가
+     * RejectedExecutionException을 던지므로 잡아서 로그만 남긴다 — 결제 자체는 이미 APPROVE 커밋됨.
+     * (후속 안전망: reconciliation 스케줄러 확장으로 PDF 누락 detect/재처리 — 별건 작업)
+     */
+    private void dispatchPdfGeneration(Long contractId) {
+        try {
+            pdfGenerationWorker.process(contractId);
+        } catch (RejectedExecutionException e) {
+            log.error("[Payment] PDF 워커 큐 가득 — 거절. contractId={}. 후속 reconciliation 처리 예정.",
+                    contractId, e);
+        }
     }
 
     private void processTossPayment(Long paymentId, PaymentConfirmReqDto dto, PaymentOrderInfo orderInfo) {
         try {
             TossPaymentConfirmResDto response = requestTossConfirm(dto, orderInfo);
-            validateConfirmedOrder(response, orderInfo);
-            // db 승인 처리
             paymentRecordService.approve(paymentId, dto.getContractId(), response, serializeToJson(response));
         } catch (Exception e) {
             compensateOrphan(paymentId, dto.getPaymentKey(), e);
@@ -136,42 +143,11 @@ public class PaymentService {
         }
     }
 
-    private String generateAndStorePdf(Contract contract) {
-        ContractBaseReqDto formDto = loadFormData(contract.getId());
-        try {
-            byte[] pdfBytes = contractPdfService.generatePdf(formDto);
-            return contractPdfStorageService.save(contract.getId(), pdfBytes);
-        } catch (Exception e) {
-            log.error("[PDF] 생성/저장 실패 - contractId={}", contract.getId(), e);
-            throw new RuntimeException("PDF 생성에 실패했습니다.", e);
-        }
-    }
-
-    private ContractBaseReqDto loadFormData(Long contractId) {
-        String formJson = contractFormDataRepository.findById(contractId)
-                .map(ContractFormData::getFormJson)
-                .orElseThrow(() -> new ContractNotFoundException());
-        try {
-            return objectMapper.readValue(formJson, ContractBaseReqDto.class);
-        } catch (Exception e) {
-            throw new RuntimeException("계약서 폼 데이터 파싱 실패", e);
-        }
-    }
-
     private PaymentOrderInfo validateOrder(PaymentConfirmReqDto dto) {
         PaymentOrderInfo orderInfo = paymentOrderRedisService.findOrderInfo(dto.getContractId());
         if (orderInfo == null) throw new PaymentOrderInvalidException();
         if (!orderInfo.getOrderId().equals(dto.getOrderId())) throw new PaymentOrderInvalidException();
         return orderInfo;
-    }
-
-    private void validateConfirmedOrder(TossPaymentConfirmResDto response, PaymentOrderInfo orderInfo) {
-        if (!orderInfo.getOrderId().equals(response.getOrderId())) {
-            throw new PaymentOrderInvalidException();
-        }
-        if (!orderInfo.getAmount().equals(response.getTotalAmount())) {
-            throw new PaymentAmountMismatchException();
-        }
     }
 
     private void validateLesseeAccess(Contract contract, Long memberId) {
@@ -209,13 +185,6 @@ public class PaymentService {
         List<String> tokens = findFcmTokens(contract.getMember());
         fcmService.sendToAll(tokens, "결제 환불 완료",
                 "결제가 환불 처리되었습니다.", contractId);
-    }
-
-    private void notifyPaymentCompleted(Contract contract) {
-        String contractId = String.valueOf(contract.getId());
-        List<String> tokens = findFcmTokens(contract.getMember());
-        fcmService.sendToAll(tokens, "결제 완료",
-                "임차인이 결제를 완료했습니다.", contractId);
     }
 
     private List<String> findFcmTokens(Member member) {

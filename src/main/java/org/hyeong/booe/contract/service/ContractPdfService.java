@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +33,8 @@ public class ContractPdfService {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
     private static final String PDF_STYLE_OVERRIDE = loadPdfOverrideCss();
+    /** 한글 폰트(malgun.ttf)는 ~22MB. 매 호출 재파싱 시 거대 churn(1장당 ~44MB)이 발생해 1회 로드 후 공유. */
+    private static final byte[] MALGUN_TTF = loadFontBytes("/fonts/malgun.ttf");
 
     private static String loadPdfOverrideCss() {
         try (InputStream is = ContractPdfService.class.getResourceAsStream(
@@ -43,6 +46,15 @@ public class ContractPdfService {
         }
     }
 
+    private static byte[] loadFontBytes(String path) {
+        try (InputStream is = ContractPdfService.class.getResourceAsStream(path)) {
+            if (is == null) throw new IllegalStateException("폰트 없음: " + path);
+            return is.readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException("폰트 로드 실패: " + path, e);
+        }
+    }
+
     public byte[] generatePdf(ContractBaseReqDto dto) throws IOException {
         String html = renderContractHtml(dto);
         html = html.replace("</head>", PDF_STYLE_OVERRIDE + "</head>");
@@ -51,11 +63,11 @@ public class ContractPdfService {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFont(
-                () -> getClass().getResourceAsStream("/fonts/malgun.ttf"),
+                () -> new ByteArrayInputStream(MALGUN_TTF),
                 "MalgunGothic", 400, PdfRendererBuilder.FontStyle.NORMAL, true
             );
             builder.useFont(
-                () -> getClass().getResourceAsStream("/fonts/malgun.ttf"),
+                () -> new ByteArrayInputStream(MALGUN_TTF),
                 "sans-serif", 400, PdfRendererBuilder.FontStyle.NORMAL, true
             );
             builder.withHtmlContent(html, baseUri);

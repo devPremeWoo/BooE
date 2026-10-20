@@ -19,7 +19,10 @@ public class BuildingInfoReqDto {
     }
 
     public static BuildingInfoReqDto from(PropertyInfoReqDto reqDto) {
-        String pnu = reqDto.getPnu();
+        return fromPnu(reqDto.getPnu());
+    }
+
+    public static BuildingInfoReqDto fromPnu(String pnu) {
         return BuildingInfoReqDto.builder()
                 .sigunguCd(pnu.substring(0, 5))
                 .bjdongCd(pnu.substring(5, 10))

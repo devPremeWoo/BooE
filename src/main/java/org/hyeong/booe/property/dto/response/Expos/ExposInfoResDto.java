@@ -30,6 +30,9 @@ public class ExposInfoResDto {
     public static class Body {
         @JsonProperty("items")
         private Items items;
+
+        @JsonProperty("totalCount")
+        private Integer totalCount;
     }
 
     @Getter
@@ -41,10 +44,19 @@ public class ExposInfoResDto {
     }
 
     public List<ExposItemDto> getItemList() {
-        if (response == null || response.body == null || response.body.items == null) {
+        if (response == null || response.body == null || response.body.items == null
+                || response.body.items.item == null) {
             return Collections.emptyList();
         }
 
         return response.body.items.item;
+    }
+
+    public int getTotalCount() {
+        if (response == null || response.body == null || response.body.totalCount == null) {
+            return 0;
+        }
+
+        return response.body.totalCount;
     }
 }
